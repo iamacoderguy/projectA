@@ -6,7 +6,7 @@ _This project poster is following the template at https://www.atlassian.com/team
 
 projectA is the first one of 26 projects from A to Z that I intend to develop on the way to become a full-stack developer.
 
-projectA will last in one month from Aug 10 to Sep 10. Hope that it can contain basic knowledge of full-stack system development including front-end, back-end and devops.
+projectA will last in one month from Aug 10 to Sep 10. Hope that it can contain basic knowledge of full-stack system development including front-end, back-end, and DevOps.
 
 Team project owner | Team members  | Project status: Active / Inactive / Shipped
 ------------------ | ------------- | -------------------------------------------
@@ -15,12 +15,17 @@ Team project owner | Team members  | Project status: Active / Inactive / Shipped
 
 ## Problem space 
 ### Why are we doing this?
-PROBLEM STATEMENT: _What problem or need are you trying to solve or fulfill?_
+PROBLEM STATEMENT: Need for a system that requires basic knowledge of front-end, back-end, and DevOps to build.
 
-IMPACT OF THIS PROBLEM: _What's the impact of this problem on our customers and to our business?_
+IMPACT OF THIS PROBLEM: I have two years' experience of mobile development in Xamarin and that's it. My job is at risk. I can be fired at any time and it's hard to find a new one with Xamarin experience in my country. There are many things to learn, but not enough time for me for learning anything deeply. The best way for me to learn a thing is from practicing. So I would like to implement my ideas one by one to help me learn about the high-demand domain knowledge in my area. A system that requires basic knowledge of front-end, back-end and DevOps is a good starting point for me.
 
 ### How do we judge success?
-_What are the goals of the project and the success criteria by which they will be measured? (These need to be specific and measurable before moving into make it)_
+The project will be finished if:
+* I finish developing a system which involves a server (back-end) and one or more clients (front-end)
+* The system can run, do one or more real tasks and everyone can use it with some configurations
+* The system doesn't need to run online, on-cloud. It can use a LAN.
+* No master how many features the system has.
+* The system must be continuously integrated and continuously delivered.
 
 ### Possible solutions
 _List your high level ideas for possible solutions. (Can be filled out later)_
