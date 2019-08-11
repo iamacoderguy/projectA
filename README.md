@@ -22,13 +22,18 @@ IMPACT OF THIS PROBLEM: I have two years' experience of mobile development in Xa
 ### How do we judge success?
 The project will be finished if:
 * I finish developing a system which involves a server (back-end) and one or more clients (front-end)
-* The system can run, do one or more real tasks and everyone can use it with some configurations
+* The system can run, do one or more useful tasks and everyone can use it with some configurations
 * The system doesn't need to run online, on-cloud. It can use a LAN.
 * No master how many features the system has.
 * The system must be continuously integrated and continuously delivered.
 
 ### Possible solutions
-_List your high level ideas for possible solutions. (Can be filled out later)_
+1. Play a mini game with an auto bot from the server
+1. Play a mini game with friends via LAN
+1. An authentication system (sign up and sign in).
+1. Randomly show a random thing (such as motivation quote or video from Youtube).
+1. File transfer between PC and mobile or PC and PC
+
 
 ## Validation
 ### What we already know?
