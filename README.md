@@ -36,7 +36,7 @@ The project will be finished if:
 
 ## Validation
 ### What we already know?
-I will frameworks to implement the solution based on the roadmap at https://github.com/kamranahmedse/developer-roadmap
+I will choose frameworks to implement the solution based on the roadmap at https://github.com/kamranahmedse/developer-roadmap (maybe JS related frameworks).
 I take ownership of defining of done.
 
 ### What do we need to answer?
