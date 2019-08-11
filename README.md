@@ -31,9 +31,8 @@ The project will be finished if:
 1. Play a mini game with an auto bot from the server
 1. Play a mini game with friends via LAN
 1. An authentication system (sign up and sign in).
-1. Randomly show a random thing (such as motivation quote or video from Youtube).
-1. File transfer between PC and mobile or PC and PC
-
+1. Randomly show a thing (such as a motivation quote or a video from Youtube).
+1. __File transfer between PC and mobile or PC and PC__
 
 ## Validation
 ### What we already know?
@@ -52,19 +51,32 @@ _Link to details:_
 
 ## Ready to make it
 ### What are we doing?
-_What will the project deliver? For example, an elevator pitch or read me_
+I will deliver a solution including:
+1. Client applications:
+   * A mobile application (Android or iOS or both)
+   * A desktop application (desktop or web app or both)
+1. A server package which is able to install and run on Windows
+
+Clients can:
+* Connect to the server if they're in a same LAN, then
+  * Upload files to server
+  * Browse files from server
+  * Download files from server
+  
+ The release package also includes a CI/CD system for the above solution.
 
 ### Why will a customer want this?
-_It's good to get Product Management or Marketing input here: ad poster, press release, blog post_
-
-_Link to details:_
+It can help me to learn about basics of front-end (the clients), back-end (the server) and DevOps (the CI/CD system).
 
 ### Visualize the solution
-_It's good to get Design input here: white board sketches, journey map, end to end demo_
+![Server Dashboard](https://drive.google.com/uc?export=download&id=1e1GZGuyM5YGZJg-Qet5cijTYy19nDyxu)
 
-_Link to details:_
+![Mobile Client](https://drive.google.com/uc?export=download&id=13vQtbGbeQyumHRLKPXupJxM2y2Iqr999)
+![Desktop Client](https://drive.google.com/uc?export=download&id=1y-ddWyFJW_Jt3WbOTl_C1f80DjE1YqcX)
 
 ### Scale and scope
-_It's good to get Engineering input here: t-shirt size estimate_
-
-_Link to details:_
+The project will last in one month:
+* 1st week: Design and choose framework
+* 2nd week: PoC (front-end, back-end and DevOps)
+* 3rd week: Finalize
+* 4th week: Package
