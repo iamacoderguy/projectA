@@ -36,18 +36,11 @@ The project will be finished if:
 
 ## Validation
 ### What we already know?
-_What data or insights do you have to validate this?_
-
-_Link to details:_
+I will frameworks to implement the solution based on the roadmap at https://github.com/kamranahmedse/developer-roadmap
+I take ownership of defining of done.
 
 ### What do we need to answer?
-_What assumptions are we making that need to be validated/refuted?_
-
-_What questions will increase our confidence in the decisions we need to make?_
-
-_What are the gaps in our understanding?_
-
-_Link to details:_
+No, just do it, then we will explore.
 
 ## Ready to make it
 ### What are we doing?
@@ -57,13 +50,12 @@ I will deliver a solution including:
    * A desktop application (desktop or web app or both)
 1. A server package which is able to install and run on Windows
 
-Clients can:
-* Connect to the server if they're in a same LAN, then
-  * Upload files to server
-  * Browse files from server
-  * Download files from server
+The clients can connect to the server if they're in a same LAN, then
+* Upload files to server
+* Browse files from server
+* Download files from server
   
- The release package also includes a CI/CD system for the above solution.
+The release package also includes a CI/CD system for the above solution.
 
 ### Why will a customer want this?
 It can help me to learn about basics of front-end (the clients), back-end (the server) and DevOps (the CI/CD system).
