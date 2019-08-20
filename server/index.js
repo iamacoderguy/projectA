@@ -1,20 +1,14 @@
-const config = require('config');
-const debug = require('debug')('servera:index');
-const morgan = require('morgan');
+const winston = require('winston');
 const express = require('express');
 const app = express();
 
-debug(config.get('name'));
+console.info('To enable debug mode, set env DEBUG=servera:*');
 
-if (app.get('env') === 'development'){
-    app.use(morgan('tiny'));
-    debug('Morgan enabled...');
-}
+require('./startup/logging')(app);
+require('./startup/routes')(app);
+require('./startup/config')();
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
+const port = process.env.PORT || 3000;
+const server = app.listen(port, () => winston.info(`Listening on port ${port}...`));
 
-app.listen(3000, () => {
-    debug('Listening on port 3000...');
-})
+module.exports = server;
