@@ -9,18 +9,16 @@ module.exports = function(app) {
     debug('Morgan enabled...');
   }
 
-  winston.add(
-    new winston.transports.File({ filename: './Logs/logfile.log' })
-  );
+  winston.add(new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.colorize(),
+        winston.format.simple())
+    }));
+  winston.add( new winston.transports.File({ filename: './Logs/logfile.log' }) );
 
   winston.exceptions.handle(
-    new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.json(),
-          winston.format.prettyPrint()
-        )
-      }),
+    new winston.transports.Console(),
     new winston.transports.File({ filename: './Logs/uncaughtExceptions.log' })
   )
   
