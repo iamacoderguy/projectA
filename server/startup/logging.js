@@ -15,11 +15,11 @@ module.exports = function(app) {
         winston.format.colorize(),
         winston.format.simple())
     }));
-  winston.add( new winston.transports.File({ filename: './Logs/logfile.log' }) );
+  winston.add( new winston.transports.File({ filename: './_logs/logfile.log' }) );
 
   winston.exceptions.handle(
     new winston.transports.Console(),
-    new winston.transports.File({ filename: './Logs/uncaughtExceptions.log' })
+    new winston.transports.File({ filename: './_logs/uncaughtExceptions.log' })
   )
   
   process.on('unhandledRejection', (ex) => {

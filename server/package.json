@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll --verbose --coverage",
+    "test": "jest --watch --verbose --coverage",
     "start": "node index.js"
   },
   "engines": {
     "node": "10.16.3"
+  },
+  "jest": {
+    "coverageDirectory": "_coverage"
   },
   "author": "",
   "license": "ISC",
