@@ -39,8 +39,25 @@ router.get('/', (req, res) => {
     })
 });
 
-router.get('/ftp', (req, res) => {
-    res.send('Returns the list of shared files in ftp format');
+router.get('/:filename', (req, res) => {
+    let sharedFilePath = getSharedPath() + '/' + req.params.filename;
+    debug('SharedFilePath: ' + sharedFilePath);
+
+    fs.stat(sharedFilePath, (err, stats) => {
+        if (!err) {
+            // send file to client
+            res.status(200).sendFile(sharedFilePath);
+            return;
+        }
+
+        if (err.code === 'ENOENT') {
+            res.status(404).send('not found.');
+            return;
+        }
+
+        winston.error(err);
+        res.status(500).send('something failed.');
+    })
 });
 
 module.exports = router;
