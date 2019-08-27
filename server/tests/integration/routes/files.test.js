@@ -2,7 +2,7 @@ const request = require('supertest');
 const path = require('path');
 
 const app = require('../../../startup/app');
-const files = require('../../../routes/files');
+const { setSharedPath } = require('../../../helpers/sharedPathHelper');
 
 const endpoint = '/api/files';
 
@@ -12,7 +12,7 @@ describe(endpoint, () => {
             it('should return 200', async () => {
                 // arrange
                 let sharedPath = path.resolve(path.join(__dirname, 'fakePublicFolder'));
-                files.setSharedPath(sharedPath);
+                setSharedPath(sharedPath);
 
                 // act
                 const res = await request(app).get(endpoint);
@@ -24,7 +24,7 @@ describe(endpoint, () => {
             it('should return the list of current shared files', async () => {
                 // arrange
                 let sharedPath = path.resolve(path.join(__dirname, 'fakePublicFolder'));
-                files.setSharedPath(sharedPath);
+                setSharedPath(sharedPath);
 
                 const expectedFiles = [
                     'demo.docx',
@@ -54,7 +54,7 @@ describe(endpoint, () => {
             it('should return 404', async () => {
                 // arrange
                 let sharedPath = '';
-                files.setSharedPath(sharedPath);
+                setSharedPath(sharedPath);
 
                 // act
                 const res = await request(app).get(endpoint);

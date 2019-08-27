@@ -5,14 +5,15 @@ const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 
+const { getSharedPath } = require('../helpers/sharedPathHelper');
+
 // /api/files
 /// GET - returns list of shared files
 /// GET ./{filepath / filename / id} - returns the file
 /// POST - push a file to server
 
-let sharedPath = '';
-
 router.get('/', (req, res) => {
+    let sharedPath = getSharedPath();
     debug('SharedPath: ' + sharedPath);
 
     fs.stat(sharedPath, (err, stats) => {
@@ -43,6 +44,3 @@ router.get('/ftp', (req, res) => {
 });
 
 module.exports = router;
-module.exports.setSharedPath = (path) => {
-    sharedPath = path;
-}
