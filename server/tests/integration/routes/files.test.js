@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = require('../../../startup/app');
-const { setSharedPath } = require('../../../helpers/sharedPathHelper');
+const { setSharedPath, getSharedPath } = require('../../../helpers/sharedPathHelper');
 
 const endpoint = '/api/files';
 const validSharedPath = path.resolve(path.join(__dirname, 'fakePublicFolder'));
@@ -98,6 +98,76 @@ describe(endpoint, () => {
 
             // act
             const res = await request(app).get(endpoint + '/' + invalidFilename);
+
+            // assert
+            expect(res.status).toBe(404);
+        });
+    })
+
+    describe('PUT /path', () => {
+        it('should return 200 if input is valid', async () => {
+            // arrange
+            setSharedPath('');
+
+            // act
+            const res = await request(app)
+                                .put(endpoint + '/path')
+                                .send({ path: validSharedPath });
+
+            // assert
+            expect(res.status).toBe(200);
+        });
+
+        it('should return the list of new shared files if input is valid', async () => {
+            // arrange
+            setSharedPath('');
+            const expectedFiles = [
+                'demo.docx',
+                'iso_8859-1.txt',
+                'SampleAudio_0.7mb.mp3',
+                'SampleDOCFile_5000kb.doc',
+                'SampleJPGImage_50kbmb.jpg',
+                'SamplePDFFile_5mb.pdf',
+                'SampleSVGImage_53kbmb.svg',
+                'SampleVideo_640x360_5mb.mp4',
+                'SampleZIPFile_10mbmb.zip',
+                'noExtensionFile',
+            ]
+
+            // act
+            const res = await request(app)
+                                .put(endpoint + '/path')
+                                .send({ path: validSharedPath });
+
+            // assert
+            expect(res.body.length).toBe(expectedFiles.length);
+            expectedFiles.forEach(expectedFile => {
+                expect(res.body.some(f => f === expectedFile)).toBeTruthy();
+            });
+        });
+
+        it('should update the sharedPath if input is valid', async () => {
+            // arrange
+            setSharedPath('another-path');
+
+            // act
+            const res = await request(app)
+                                .put(endpoint + '/path')
+                                .send({ path: validSharedPath });
+            const actualPath = getSharedPath();
+
+            // assert
+            expect(actualPath).toBe(validSharedPath);
+        });
+
+        it('should return 404 if input is invalid', async () => {
+            // arrange
+            setSharedPath(validSharedPath);
+
+            // act
+            const res = await request(app)
+                                .put(endpoint + '/path')
+                                .send({ path: 'invalid-path' });
 
             // assert
             expect(res.status).toBe(404);

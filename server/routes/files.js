@@ -5,12 +5,12 @@ const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 
-const { getSharedPath } = require('../helpers/sharedPathHelper');
+const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
 
 // /api/files
 /// GET - returns list of shared files
 /// GET ./{filepath / filename / id} - returns the file
-/// POST - push a file to server
+/// PUT /path - update shared path
 
 router.get('/', (req, res) => {
     let sharedPath = getSharedPath();
@@ -59,5 +59,36 @@ router.get('/:filename', (req, res) => {
         res.status(500).send('something failed.');
     })
 });
+
+
+router.put('/path', (req, res) => {
+    debug('req.body: ', req.body);
+
+    let newPath = req.body.path;
+
+    fs.stat(newPath, (err, stats) => {
+        if (!err) {
+            fs.readdir(newPath, (err, result) => {
+                if (!err) {
+                    setSharedPath(newPath);
+
+                    debug('Result: ' + result);
+                    res.send(result);
+                } else {
+                    winston.error('something failed.', err);
+                }
+            });
+            return;
+        }
+
+        if (err.code === 'ENOENT') {
+            res.status(404).send('not found.');
+            return;
+        }
+
+        winston.error(err);
+        res.status(500).send('something failed.');
+    })
+})
 
 module.exports = router;
