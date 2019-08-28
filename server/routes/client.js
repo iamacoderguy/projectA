@@ -2,9 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    setTimeout(() => {
-        res.send('Hello, world!');
-    }, 10);
+    res.render('first_view', { pageTitle: 'hello, world!', youAreUsingPug: true });
 });
 
 module.exports = router; 

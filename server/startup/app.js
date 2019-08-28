@@ -5,6 +5,8 @@ const express = require('express');
 const app = express();
 
 require('./logging')(app);
+require('./static')(app);
+require('./templating')(app);
 require('./routes')(app);
 require('./config')();
 require('./prod')(app);
