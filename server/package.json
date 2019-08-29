@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watch --verbose --coverage",
+    "test": "jest --watch --verbose",
     "start": "node index.js",
     "debug": "cross-env DEBUG='servera:*' nodemon index.js",
-    "test_debug": "cross-env DEBUG='servera:*' jest --watch --verbose --coverage"
+    "test_debug": "cross-env DEBUG='servera:*' jest --watch --verbose",
+    "test_coverage": "jest --coverage"
   },
   "engines": {
     "node": "10.16.3"
