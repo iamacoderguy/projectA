@@ -11,10 +11,10 @@ const validSharedPath = path.resolve(path.join(__dirname, 'fakePublicFolder'));
 describe(endpoint, () => {
     describe('GET /', () => {
         describe('if the shared path is set', () => {
-            it('should return 200', async () => {
-                // arrange
-                setSharedPath(validSharedPath);
+            beforeEach(() => { setSharedPath(validSharedPath); });
+            afterEach(() => { setSharedPath(''); });
 
+            it('should return 200', async () => {
                 // act
                 const res = await request(app).get(endpoint);
 
@@ -24,8 +24,6 @@ describe(endpoint, () => {
 
             it('should return the list of current shared files', async () => {
                 // arrange
-                setSharedPath(validSharedPath);
-
                 const expectedFiles = [
                     'demo.docx',
                     'iso_8859-1.txt',
@@ -51,10 +49,10 @@ describe(endpoint, () => {
         });
 
         describe('if the shared path is not set', () => {
-            it('should return 404', async () => {
-                // arrange
-                setSharedPath('');
+            beforeEach(() => { setSharedPath(''); });
+            afterEach(() => { setSharedPath(''); });
 
+            it('should return 404', async () => {
                 // act
                 const res = await request(app).get(endpoint);
 
@@ -66,13 +64,19 @@ describe(endpoint, () => {
 
     describe('GET /:filename', () => {
         beforeEach(() => { setSharedPath(validSharedPath); });
+        afterEach(() => { setSharedPath(''); });
+
+        async function getFile(fname) {
+            const url = endpoint + '/' + fname;
+            return await request(app).get(url);
+        }
 
         it('should return 200 if valid filename is passed', async () => {
             // arrange
-            let validFilename = 'demo.docx';
+            const validFilename = 'demo.docx';
 
             // act
-            const res = await request(app).get(endpoint + '/' + validFilename);
+            const res = await getFile(validFilename);
 
             // assert
             expect(res.status).toBe(200);
@@ -80,12 +84,12 @@ describe(endpoint, () => {
 
         it('should return the file if valid filename is passed', async () => {
             // arrange
-            let validFilename = 'SamplePDFFile_5mb.pdf';
-            let expectedType = 'application/pdf';
-            let expectedLength = fs.statSync(validSharedPath + '/' + validFilename)["size"];
+            const validFilename = 'SamplePDFFile_5mb.pdf';
+            const expectedType = 'application/pdf';
+            const expectedLength = fs.statSync(validSharedPath + '/' + validFilename)["size"];
 
             // act
-            const res = await request(app).get(endpoint + '/' + validFilename);
+            const res = await getFile(validFilename);
 
             // assert
             expect(res.headers['content-type']).toBe(expectedType);
@@ -94,13 +98,43 @@ describe(endpoint, () => {
 
         it('should return 404 if invalid filename is passed', async () => {
             // arrange
-            let invalidFilename = 'abc';
+            const invalidFilename = 'abc';
 
             // act
-            const res = await request(app).get(endpoint + '/' + invalidFilename);
+            const res = await getFile(invalidFilename);
 
             // assert
             expect(res.status).toBe(404);
+        });
+    })
+
+    describe('GET ?filename=', () => {
+        async function getFile(fname) {
+            const url = endpoint + '?filename=' + fname;
+            return await request(app).get(url);
+        }
+
+        it('should return 302', async () => {
+            // arrange
+            const anyFileName = 'any-file-name';
+
+            // act
+            const res = await getFile(anyFileName);
+
+            // assert
+            expect(res.status).toBe(302);
+        });
+
+        it('should redirect to /:filename', async () => {
+            // arrange
+            const anyFileName = 'any-file-name';
+
+            // act
+            const res = await getFile(anyFileName);
+
+            // assert
+            expect(res.header['location']).toBe(endpoint + '/' + anyFileName);
+            expect(res.text).toMatch(/redirect/i);
         });
     })
 
