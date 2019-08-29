@@ -1,8 +1,8 @@
-const { getSharedPath } = require('../helpers/sharedPathHelper');
+const sharedPathHelper = require('../helpers/sharedPathHelper');
 
 module.exports.renderDashboard = function (req, res) {
     res.render('dashboardView', {
-        path: getSharedPath(),
+        path: sharedPathHelper.getSharedPath(),
         dashboardName: 'Server-A Dashboard'
     });
 }
