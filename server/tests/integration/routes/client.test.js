@@ -22,7 +22,6 @@ describe('/', () => {
         it('should trigger renderDashboard', async () => {
             // arrange
             render.renderDashboard = jest.fn((req, res) => {
-                console.log('faking renderDashboard...');
                 res.send();
             })
 
