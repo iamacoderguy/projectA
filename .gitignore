@@ -1,3 +1,4 @@
 server/node_modules/
 server/_logs/
 server/_coverage/
+server/_tmp/
