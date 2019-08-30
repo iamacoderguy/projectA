@@ -3,10 +3,8 @@ const winston = require('winston');
 
 const url = require('url');
 const fs = require('fs');
-const Promise = require('promise');
+const path = require('path');
 const { promisify } = require('util');
-const statPromise = promisify(fs.stat);
-const readdirPromise = promisify(fs.readdir);
 
 const express = require('express');
 const router = express.Router();
@@ -18,33 +16,17 @@ const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
 /// GET ./{filepath / filename / id} - returns the file
 /// PUT /path - update shared path
 
-async function validatePath(path, res) {
-    try {
-        await statPromise(path);
-        return Promise.resolve(res);
-    }
-    catch (err) {
-        if (err.code === 'ENOENT') {
-            res.status(404).send('not found.');
-            return Promise.reject(err);
-        }
+const statPromise = promisify(fs.stat);
+const readdirPromise = promisify(fs.readdir);
 
-        winston.error(err);
-        res.status(500).send('something failed.');
-        return Promise.reject(err);
+function handleErrorPath(err, res) {
+    if (err.code === 'ENOENT') {
+        res.status(404).send('not found.');
+        return;
     }
-}
 
-async function readPath(path, res) {
-    try {
-        const result = await readdirPromise(path);
-        return Promise.resolve([result, res]);
-    }
-    catch (err) {
-        winston.error('something failed.', err);
-        res.status(500).send('something failed.');
-        return Promise.reject(err);
-    }
+    winston.error(err);
+    res.status(500).send('something failed.');
 }
 
 router.get('/', async (req, res) => {
@@ -54,40 +36,40 @@ router.get('/', async (req, res) => {
         return;
     }
 
-    const sharedPath = getSharedPath();
-    debug('SharedPath: ' + sharedPath);
+    const sharedDirPath = getSharedPath();
+    debug('SharedDirPath: ' + sharedDirPath);
 
-    validatePath(sharedPath, res)
-    .then(res => readPath(sharedPath, res))
-    .then( ([ result, res]) => {
-        debug('Result: ' + result);
-        res.send(result);
-    })
-    .catch(_ => {});
-});
+    readdirPromise(sharedDirPath)
+        .then(result => {
+            debug('Result: ' + result);
+            res.send(result);
+        })
+        .catch(err => {
+            handleErrorPath(err, res);
+        });
+})
 
 router.get('/:filename', (req, res) => {
-    const sharedFilePath = getSharedPath() + '/' + req.params.filename;
+    const sharedFilePath = path.join(getSharedPath(), req.params.filename);
     debug('SharedFilePath: ' + sharedFilePath);
 
-    validatePath(sharedFilePath, res)
-    .then(res => res.status(200).sendFile(sharedFilePath))
-    .catch(_ => {});
-});
+    statPromise(sharedFilePath)
+        .then(_ => res.status(200).sendFile(sharedFilePath))
+        .catch(err => handleErrorPath(err, res));
+})
 
 router.put('/path', (req, res) => {
     debug('req.body: ', req.body);
 
     const newPath = req.body.path;
 
-    validatePath(newPath, res)
-    .then(res => readPath(newPath, res))
-    .then(([result, res]) => {
-        setSharedPath(newPath);
-        debug('Result: ' + result);
-        res.send(result);
-    })
-    .catch(_ => {});
+    readdirPromise(newPath)
+        .then(result => {
+            setSharedPath(newPath);
+            debug('Result: ' + result);
+            res.send(result);
+        })
+        .catch(err => handleErrorPath(err, res));
 })
 
 module.exports = router;
