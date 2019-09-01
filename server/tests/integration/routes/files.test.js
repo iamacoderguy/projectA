@@ -149,12 +149,21 @@ describe(endpoint, () => {
             beforeEach(() => { setSharedPath(validSharedPath); });
             afterEach(async () => {
                 setSharedPath('');
-                await unlinkPromise(path.join(validSharedPath, notExistedFile)).catch(_ => {});
+                await unlinkPromise(path.join(validSharedPath, getNewName(existedFile))).catch(_ => {});
+                await unlinkPromise(path.join(validSharedPath, getNewName(notExistedFile))).catch(_ => {});
             });
 
             async function postFile(filename) {
                 const filePath = path.join(__dirname, 'postFiles', filename);
                 return await request(app).post(endpoint).attach('file', filePath);
+            }
+
+            function getNewName(fname) {
+                if (fname === 'fileExisted.mp3') {
+                    return 'fileExisted_1.mp3';
+                }
+
+                return fname;
             }
 
             const existedFile = 'fileExisted.mp3';
@@ -173,7 +182,7 @@ describe(endpoint, () => {
                 const res = await postFile(filename);
 
                 // assert
-                expect(res.text).toBe(filename);
+                expect(res.text).toBe(getNewName(filename));
             })
 
             it('should store the file if the file is not existed', async () => {
@@ -187,7 +196,20 @@ describe(endpoint, () => {
 
             it('should store the file with a new name if the file is existed', async () => {
                 // act
-                const res = await postFile(existedFile);
+                // const res = await postFile(existedFile);
+
+                // throw new Error('not implemeted, yet');
+
+                // assert
+                // load file
+                // check
+            })
+
+            each([[existedFile], [notExistedFile]]).it('should remove the tmp file in case file=%s', async () => {
+                // act
+                // const res = await postFile(existedFile);
+
+                // throw new Error('not implemeted, yet');
 
                 // assert
                 // load file
@@ -209,6 +231,17 @@ describe(endpoint, () => {
 
                 // assert
                 expect(res.status).toBe(404);
+            })
+
+            it('should remove the tmp file', async () => {
+                // act
+                // const res = await postFile(existedFile);
+
+                // throw new Error('not implemeted, yet');
+
+                // assert
+                // load file
+                // check
             })
         })
     })

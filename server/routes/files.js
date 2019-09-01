@@ -38,30 +38,18 @@ async function isAvailable(fname, dpath) {
         return Promise.reject( {code: 'Existed'} );
     }
     catch (err) {
+        console.log('isAvailable: ', err);
         if (err.code === 'ENOENT') {
-            return Promise.resolve(fpath);
+            return Promise.resolve(fname);
         }
         return Promise.reject(err);
     }
 }
 
-function copyFile(req, sharedPath) {
-    const tmpFile = path.join(__dirname, '../_tmp', req.file.filename);
-    let newFile = path.join(sharedPath, req.file.originalname);
-
-    return statPromise(newFile)
-    .then( _ => {
-        const fname = req.file.originalname + '_1';
-        newFile = path.join(sharedPath, fname);
-        return copyFilePromise(tmpFile, newFile, fs.constants.COPYFILE_FICLONE);
-    })
-    .catch( err => {
-        if (err.code === 'ENOENT') {
-            copyFilePromise(tmpFile, newFile, fs.constants.COPYFILE_FICLONE);
-            Promise.resolve(req.file.originalname);
-        }
-        Promise.reject(err);
-    })
+function getAvailableName(fname, dpath) {
+    const ename = path.extname(fname);
+    const bname = path.basename(fname, ename);
+    return bname + '_1' + ename;
 }
 
 router.get('/', async (req, res) => {
@@ -104,17 +92,18 @@ router.post('/', (req, res) => {
         })
         .catch(err => {
             if (err.code === 'Existed') {
-                return Promise.resolve(req.file.originalname + '_1');
+                const newName = getAvailableName(req.file.originalname, sharedDirPath);
+                return Promise.resolve(newName);
             } else {
                 return Promise.reject(err);
             }
         })
-        .then(fname => {
+        .then(async fname => {
             const tmpFile = path.join(__dirname, '../_tmp', req.file.filename);
             const fpath = path.join(sharedDirPath, fname);
-            return copyFilePromise(tmpFile, fpath, fs.constants.COPYFILE_FICLONE).then( _ => fname);
+            await copyFilePromise(tmpFile, fpath, fs.constants.COPYFILE_FICLONE);
+            return res.send(fname);
         })
-        .then(fname => res.send(fname))
         .catch(err => handleErrorPath(err, res));
 })
 
