@@ -10,6 +10,7 @@ const express = require('express');
 const router = express.Router();
 
 const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
+const { getAvailableName, tmpDirPath } = require('../helpers/sharedFileHelper');
 
 // /api/files
 /// GET - returns list of shared files
@@ -19,6 +20,7 @@ const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
 const statPromise = promisify(fs.stat);
 const readdirPromise = promisify(fs.readdir);
 const copyFilePromise = promisify(fs.copyFile);
+const unlinkPromise = promisify(fs.unlink);
 
 function handleErrorPath(err, res) {
     if (err.code === 'ENOENT') {
@@ -30,29 +32,7 @@ function handleErrorPath(err, res) {
     res.status(500).send('something failed.');
 }
 
-async function isAvailable(fname, dpath) {
-    const fpath = path.join(dpath, fname);
-
-    try {
-        await statPromise(fpath);
-        return Promise.reject( {code: 'Existed'} );
-    }
-    catch (err) {
-        console.log('isAvailable: ', err);
-        if (err.code === 'ENOENT') {
-            return Promise.resolve(fname);
-        }
-        return Promise.reject(err);
-    }
-}
-
-function getAvailableName(fname, dpath) {
-    const ename = path.extname(fname);
-    const bname = path.basename(fname, ename);
-    return bname + '_1' + ename;
-}
-
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
     if (req.query.filename) {
         const urlWithoutQuery = url.parse(req.originalUrl).pathname;
         res.redirect(urlWithoutQuery + '/' + req.query.filename);
@@ -84,27 +64,25 @@ router.get('/:filename', (req, res) => {
 router.post('/', (req, res) => {
     const sharedDirPath = getSharedPath();
     debug('SharedDirPath: ' + sharedDirPath);
+    debug('req.file: ', req.file);
 
     readdirPromise(sharedDirPath)
         .then(_ => {
-            debug('req.file: ', req.file);
-            return isAvailable(req.file.originalname, sharedDirPath);
-        })
-        .catch(err => {
-            if (err.code === 'Existed') {
-                const newName = getAvailableName(req.file.originalname, sharedDirPath);
-                return Promise.resolve(newName);
-            } else {
-                return Promise.reject(err);
-            }
+            return getAvailableName(req.file.originalname, sharedDirPath);
         })
         .then(async fname => {
-            const tmpFile = path.join(__dirname, '../_tmp', req.file.filename);
+            debug('new fname: ', fname);
+            const tmpFile = path.join(tmpDirPath, req.file.filename);
             const fpath = path.join(sharedDirPath, fname);
-            await copyFilePromise(tmpFile, fpath, fs.constants.COPYFILE_FICLONE);
+            await copyFilePromise(tmpFile, fpath, fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE);
             return res.send(fname);
         })
-        .catch(err => handleErrorPath(err, res));
+        .catch(err => handleErrorPath(err, res))
+        .finally(async () => {
+            const tmpFile = path.join(tmpDirPath, req.file.filename);
+            debug('unlinking tmp file...', tmpFile);
+            await unlinkPromise(tmpFile).catch(err => winston.error(err));
+        });
 })
 
 router.put('/path', (req, res) => {

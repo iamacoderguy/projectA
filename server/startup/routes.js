@@ -4,7 +4,8 @@ const client = require('../routes/client');
 const files = require('../routes/files');
 const error = require('../middleware/error');
 const multer = require('multer')
-const upload = multer({ dest: '_tmp/' })
+const { tmpDirName } = require('../helpers/sharedFileHelper');
+const upload = multer({ dest: tmpDirName })
 
 module.exports = function (app) {
     app.use(methodOverride('_method')); // override with POST having ?_method=DELETE/PUT/GET

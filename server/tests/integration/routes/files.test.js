@@ -6,15 +6,18 @@ const fs = require('fs');
 const { promisify } = require('util');
 const statPromise = promisify(fs.stat);
 const unlinkPromise = promisify(fs.unlink);
+const readdirPromise = promisify(fs.readdir);
 
 const app = require('../../../startup/app');
 const { setSharedPath, getSharedPath } = require('../../../helpers/sharedPathHelper');
+const { tmpDirPath } = require('../../../helpers/sharedFileHelper');
 
 const endpoint = '/api/files';
 const validSharedPath = path.resolve(path.join(__dirname, 'fakePublicFolder'));
 const sharedFiles = [
     'demo.docx',
     'fileExisted.mp3',
+    'fileExisted_1.mp3',
     'iso_8859-1.txt',
     'SampleDOCFile_5000kb.doc',
     'SampleJPGImage_50kbmb.jpg',
@@ -145,6 +148,20 @@ describe(endpoint, () => {
     })
 
     describe('POST /', () => {
+        async function postFile(filename) {
+            const filePath = path.join(__dirname, 'postFiles', filename);
+            return await request(app).post(endpoint).attach('file', filePath);
+        }
+
+        const existedFile = 'fileExisted.mp3';
+        const notExistedFile = 'fileNotExisted.mp4';
+
+        function getNewName(fname) {
+            if (fname === existedFile) return 'fileExisted_2.mp3'; // fileExisted_1.mp3 is existed, too
+            if (fname === notExistedFile) return 'fileNotExisted.mp4';
+            return fname;
+        }
+
         describe('if the shared path is set', () => {
             beforeEach(() => { setSharedPath(validSharedPath); });
             afterEach(async () => {
@@ -152,22 +169,6 @@ describe(endpoint, () => {
                 await unlinkPromise(path.join(validSharedPath, getNewName(existedFile))).catch(_ => {});
                 await unlinkPromise(path.join(validSharedPath, getNewName(notExistedFile))).catch(_ => {});
             });
-
-            async function postFile(filename) {
-                const filePath = path.join(__dirname, 'postFiles', filename);
-                return await request(app).post(endpoint).attach('file', filePath);
-            }
-
-            function getNewName(fname) {
-                if (fname === 'fileExisted.mp3') {
-                    return 'fileExisted_1.mp3';
-                }
-
-                return fname;
-            }
-
-            const existedFile = 'fileExisted.mp3';
-            const notExistedFile = 'fileNotExisted.mp4';
 
             each([[existedFile], [notExistedFile]]).it('should return 200 in case file=%s', async (filename) => {
                 // act
@@ -186,8 +187,10 @@ describe(endpoint, () => {
             })
 
             it('should store the file if the file is not existed', async () => {
+                // arrange
+                const expectedNewFilePath = path.join(validSharedPath, getNewName(notExistedFile));
+                
                 // act
-                const expectedNewFilePath = path.join(validSharedPath, notExistedFile);
                 await postFile(notExistedFile);
 
                 // assert
@@ -195,25 +198,23 @@ describe(endpoint, () => {
             })
 
             it('should store the file with a new name if the file is existed', async () => {
+                // arrange
+                const expectedNewFilePath = path.join(validSharedPath, getNewName(existedFile));
+                
                 // act
-                // const res = await postFile(existedFile);
-
-                // throw new Error('not implemeted, yet');
+                await postFile(existedFile);
 
                 // assert
-                // load file
-                // check
+                expect(statPromise(expectedNewFilePath)).resolves.toBeTruthy();
             })
 
-            each([[existedFile], [notExistedFile]]).it('should remove the tmp file in case file=%s', async () => {
+            each([[existedFile], [notExistedFile]]).it('should remove the tmp file in case file=%s', async (fname) => {
                 // act
-                // const res = await postFile(existedFile);
-
-                // throw new Error('not implemeted, yet');
+                await postFile(fname);
 
                 // assert
-                // load file
-                // check
+                const tmpFiles = await readdirPromise(tmpDirPath);
+                expect(tmpFiles.length).toBe(0);
             })
         })
 
@@ -221,27 +222,21 @@ describe(endpoint, () => {
             beforeEach(() => { setSharedPath(''); });
             afterEach(() => { setSharedPath(''); });
 
-            async function postFile() {
-                return await request(app).post(endpoint);
-            }
-
-            it('should return 404', async () => {
+            each([[existedFile], [notExistedFile]]).it('should return 404 in case file=%s', async (fname) => {
                 // act
-                const res = await postFile();
+                const res = await postFile(fname);
 
                 // assert
                 expect(res.status).toBe(404);
             })
 
-            it('should remove the tmp file', async () => {
+            each([[existedFile], [notExistedFile]]).it('should remove the tmp file', async (fname) => {
                 // act
-                // const res = await postFile(existedFile);
-
-                // throw new Error('not implemeted, yet');
+                await postFile(fname);
 
                 // assert
-                // load file
-                // check
+                const tmpFiles = await readdirPromise(tmpDirPath);
+                expect(tmpFiles.length).toBe(0);
             })
         })
     })
