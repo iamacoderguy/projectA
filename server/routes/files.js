@@ -1,6 +1,7 @@
 const debug = require('debug')('servera:routes_files');
 const winston = require('winston');
 const fs = require('fs');
+const url = require('url');
 
 const express = require('express');
 const router = express.Router();
@@ -13,6 +14,12 @@ const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
 /// PUT /path - update shared path
 
 router.get('/', (req, res) => {
+    if (req.query.filename) {
+        const urlWithoutQuery = url.parse(req.originalUrl).pathname;
+        res.redirect(urlWithoutQuery + '/' + req.query.filename);
+        return;
+    }
+
     let sharedPath = getSharedPath();
     debug('SharedPath: ' + sharedPath);
 
@@ -59,7 +66,6 @@ router.get('/:filename', (req, res) => {
         res.status(500).send('something failed.');
     })
 });
-
 
 router.put('/path', (req, res) => {
     debug('req.body: ', req.body);

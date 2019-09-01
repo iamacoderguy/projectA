@@ -1,7 +1,7 @@
 const error = require('../../../middleware/error');
 let winston;
 
-describe('error middleware', () => {
+describe('middleware/error', () => {
 
     beforeEach(() => {
         winston = require('winston');

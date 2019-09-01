@@ -6,6 +6,8 @@ const app = express();
 
 require('./logging')(app);
 require('./routes')(app);
+require('./static')(app);
+require('./templating')(app);
 require('./config')();
 require('./prod')(app);
 

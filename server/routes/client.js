@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
+const render = require('../controllers/render');
+
 router.get('/', (req, res) => {
-    setTimeout(() => {
-        res.send('Hello, world!');
-    }, 10);
+    render.renderDashboard(req, res);
 });
 
-module.exports = router; 
+module.exports = router;
