@@ -19,7 +19,7 @@ const { getAvailableName, tmpDirPath } = require('../helpers/sharedFileHelper');
 
 const statPromise = promisify(fs.stat);
 const readdirPromise = promisify(fs.readdir);
-const copyFilePromise = promisify(fs.copyFile);
+const renamePromise = promisify(fs.rename);
 const unlinkPromise = promisify(fs.unlink);
 
 function handleErrorPath(err, res) {
@@ -74,14 +74,14 @@ router.post('/', (req, res) => {
             debug('new fname: ', fname);
             const tmpFile = path.join(tmpDirPath, req.file.filename);
             const fpath = path.join(sharedDirPath, fname);
-            await copyFilePromise(tmpFile, fpath, fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE);
+            await renamePromise(tmpFile, fpath);
             return res.send(fname);
         })
-        .catch(err => handleErrorPath(err, res))
-        .finally(async () => {
+        .catch(async err => {
             const tmpFile = path.join(tmpDirPath, req.file.filename);
             debug('unlinking tmp file...', tmpFile);
             await unlinkPromise(tmpFile).catch(err => winston.error(err));
+            handleErrorPath(err, res);
         });
 })
 

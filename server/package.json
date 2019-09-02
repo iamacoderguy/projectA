@@ -4,11 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watch --verbose",
+    "test": "jest --verbose --coverage",
     "start": "node index.js",
     "debug": "cross-env DEBUG='servera:*' nodemon index.js",
-    "test_debug": "cross-env DEBUG='servera:*' jest --watch --verbose",
-    "test_coverage": "jest --coverage"
+    "test_debug": "cross-env DEBUG='servera:*' jest --watch --verbose"
   },
   "engines": {
     "node": "10.16.3"
@@ -25,7 +24,7 @@
     "express": "4.17.1",
     "express-async-errors": "3.1.1",
     "helmet": "3.20.0",
-    "jest-each": "^24.9.0",
+    "jest-each": "24.9.0",
     "method-override": "3.0.0",
     "morgan": "1.9.1",
     "multer": "1.4.2",
