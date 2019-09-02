@@ -1,7 +1,8 @@
 const path = require('path');
 const fs = require('fs');
-const { promisify } = require('util');
-const statPromise = promisify(fs.stat);
+const util = require('util');
+const statPromise = util.promisify(fs.stat);
+const Promise = require('promise');
 
 async function isAvailable(fname, dpath) {
     const fpath = path.join(dpath, fname);
