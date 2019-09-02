@@ -11,18 +11,19 @@ describe('controllers/render', () => {
             res.render = jest.fn().mockReturnValue(res);
             sharedPathHelper.getSharedPath = jest.fn().mockReturnValue('path-to-files');
             networkHelper.getIpAddress = jest.fn().mockReturnValue('ip-address');
+            networkHelper.getPort = jest.fn().mockReturnValue(7554);
 
             // act
             render.renderDashboard(req, res);
 
             // assert
             expect(res.render).toHaveBeenCalledWith(
-                expect.stringContaining('dashboard'),
+                'dashboardView',
                 expect.objectContaining({
                     path: 'path-to-files',
                     dashboardName: expect.stringMatching(/dashboard/i),
                     ipAddress: 'ip-address',
-                    port: networkHelper.getPort()
+                    port: 7554
                 }));
         })
     })
