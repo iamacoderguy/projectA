@@ -6,7 +6,9 @@ describe('views/dashboardView', () => {
     it('should render dashboardView correctly', () => {
         expect(renderPug({
             path: 'path-to-files',
-            dashboardName: 'dashboard-name'
+            dashboardName: 'dashboard-name',
+            ipAddress: 'ip-address',
+            port: 5000
           })).toMatchSnapshot();
     });
 });

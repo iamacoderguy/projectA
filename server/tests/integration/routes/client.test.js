@@ -5,6 +5,9 @@ const render = require('../../../controllers/render');
 const renderDashboardOri = render.renderDashboard;
 const pug = require('pug');
 
+const { getSharedPath } = require('../../../helpers/sharedPathHelper');
+const { getIpAddress, getPort } = require('../../../helpers/networkHelper');
+
 describe('/', () => {
     beforeEach(() => {
         render.renderDashboard = renderDashboardOri;
@@ -37,7 +40,9 @@ describe('/', () => {
             const renderPug = data => pug.renderFile('views/dashboardView.pug', data);
             const expectedDashboardView = renderPug({
                 path: "",
-                dashboardName: 'Server-A Dashboard'
+                dashboardName: 'Server-A Dashboard',
+                ipAddress: getIpAddress(),
+                port: getPort()
             });
 
             // act

@@ -1,5 +1,6 @@
 const render = require('../../../controllers/render');
 const sharedPathHelper = require('../../../helpers/sharedPathHelper');
+const networkHelper = require('../../../helpers/networkHelper');
 
 describe('controllers/render', () => {
     describe('renderDashboard', () => {
@@ -9,16 +10,20 @@ describe('controllers/render', () => {
             const res = {};
             res.render = jest.fn().mockReturnValue(res);
             sharedPathHelper.getSharedPath = jest.fn().mockReturnValue('path-to-files');
+            networkHelper.getIpAddress = jest.fn().mockReturnValue('ip-address');
+            networkHelper.getPort = jest.fn().mockReturnValue(7554);
 
             // act
             render.renderDashboard(req, res);
 
             // assert
             expect(res.render).toHaveBeenCalledWith(
-                expect.stringContaining('dashboard'),
+                'dashboardView',
                 expect.objectContaining({
                     path: 'path-to-files',
-                    dashboardName: expect.stringMatching(/dashboard/i)
+                    dashboardName: expect.stringMatching(/dashboard/i),
+                    ipAddress: 'ip-address',
+                    port: 7554
                 }));
         })
     })
