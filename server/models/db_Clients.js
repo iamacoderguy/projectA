@@ -3,11 +3,13 @@ const Client = require('./client');
 const clients = [];
 
 module.exports.getClient = function(ipAddr) {
-    if (!clients[ipAddr]) {
-        clients[ipAddr] = new Client(ipAddr);
+    const client = new Client(ipAddr);
+    
+    if (!clients[client.id]) {
+        clients[client.id] = client;
     }
 
-    return clients[ipAddr];
+    return clients[client.id];
 }
 
 module.exports.getClients = function() {

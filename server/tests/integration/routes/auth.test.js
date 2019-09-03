@@ -5,11 +5,13 @@ const app = require('../../../startup/app');
 
 const jwt = require('jsonwebtoken');
 const config = require('config');
+const authHelper = require('../../../helpers/authHelper');
 
 describe(endpoint, () => {
-    describe('POST /connect', () => {
-        const connectEndpoint = endpoint + '/connect';
+    const connectEndpoint = endpoint + '/connect';
+    const disconnectEndpoint = endpoint + '/disconnect';
 
+    describe('POST /connect', () => {
         it('should always return 200', async () => {
             // act
             const res = await request(app).post(connectEndpoint);
@@ -25,13 +27,10 @@ describe(endpoint, () => {
             // assert
             const token = res.text;
             const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
-            console.log(decoded);
 
             expect(decoded).toMatchObject({
-                client: {
-                    ipAddr: expect.any(String),
-                    isAdmin: expect.any(Boolean)
-                },
+                id: expect.any(String),
+                isAdmin: expect.any(Boolean),
                 expCode: expect.any(Number),
                 exp: expect.any(Number)
             });
@@ -39,19 +38,24 @@ describe(endpoint, () => {
 
         it('should disable previous jwts of the client', async () => {
             // arrange
-            // connect and get a jwt
+            const clientIpAddr = '192.168.1.7';
+            let res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            const previousToken = res.text;
 
             // act
-            const res = await request(app).post(connectEndpoint);
+            res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            const currentToken = res.text;
 
             // assert
-            // use a helper to validate the previous jwt
+            const previousErr = authHelper.verify(clientIpAddr, previousToken);
+            const currentErr = authHelper.verify(clientIpAddr, currentToken);
+
+            expect(previousErr.name).toBe('TokenExpiredError');
+            expect(currentErr).toBeNull();
         })
     })
 
     describe('POST /disconnect', () => {
-        const disconnectEndpoint = endpoint + '/disconnect';
-
         it('should always return 200', async () => {
             // act
             const res = await request(app).post(disconnectEndpoint);
@@ -62,13 +66,16 @@ describe(endpoint, () => {
 
         it('should disable all jwt of the client', async () => {
             // arrange
-            // connect and get a jwt
+            const clientIpAddr = '192.168.1.7';
+            let res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            const previousToken = res.text;
 
             // act
-            const res = await request(app).post(disconnectEndpoint);
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr);
 
             // assert
-            // use a helper to validate the jwt
+            const previousErr = authHelper.verify(clientIpAddr, previousToken);
+            expect(previousErr.name).toBe('DisconnectedError');
         })
     })
 })
