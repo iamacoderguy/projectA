@@ -1,0 +1,41 @@
+doctype html
+html(lang="en-US")
+    head
+        title= dashboardName
+        meta(charset='utf-8')
+        meta(name='viewport' content='width=device-width, initial-scale=1.0')
+        meta(name='description' content=dashboardName)
+        link(rel='stylesheet' href='w3.css')
+    body
+        .w3-container
+            .w3-container.w3-dark-teal
+                h2 #{dashboardName} - #{ipAddress}:#{port}
+            p
+                iframe(width='100%' height='200vw' title='Result box' srcdoc='<i>Result...</i>' name='iframe_result')
+            form.w3-container(method='POST' action='/api/files/path?_method=PUT' target='iframe_result')
+                p
+                    label.w3-text-dark-teal(for="sharedPathInput")
+                        b Set a new shared path (/api/files/path)
+                    input.w3-input.w3-border.w3-round(id='sharedPathInput' name='path' type='text' placeholder='path-to-files' value=path)
+                p
+                    button.w3-btn.w3-dark-teal(type='submit') PUT
+            form.w3-container(method='GET' action='/api/files' target='iframe_result')
+                p
+                    label.w3-text-dark-teal
+                        b Get the shared files list (/api/files)
+                p
+                    button.w3-btn.w3-dark-teal(type='submit') GET
+            form.w3-container(method='GET' action='/api/files' target='_blank')
+                p
+                    label.w3-text-dark-teal(for="filenameInput")
+                        b Get a shared file (/api/files/:filename)
+                    input.w3-input.w3-border.w3-round(id='filenameInput' name='filename' type='text' placeholder='filename')
+                p
+                    button.w3-btn.w3-dark-teal(type='submit') GET
+            form.w3-container(method='POST' action='/api/files' enctype="multipart/form-data" target='iframe_result')
+                p
+                    label.w3-text-dark-teal(for="filepathInput")
+                        b Upload a new file (/api/files)
+                    input.w3-input.w3-border.w3-round(id='filepathInput' name='file' type='file')
+                p
+                    button.w3-btn.w3-dark-teal(type='submit') POST

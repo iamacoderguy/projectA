@@ -12,6 +12,7 @@ html(lang="en-US")
                 h2 #{dashboardName} - #{ipAddress}:#{port}
             p
                 iframe(width='100%' height='200vw' title='Result box' srcdoc='<i>Result...</i>' name='iframe_result')
+
             form.w3-container(method='POST' action='/api/files/path?_method=PUT' target='iframe_result')
                 p
                     label.w3-text-dark-teal(for="sharedPathInput")
@@ -19,23 +20,15 @@ html(lang="en-US")
                     input.w3-input.w3-border.w3-round(id='sharedPathInput' name='path' type='text' placeholder='path-to-files' value=path)
                 p
                     button.w3-btn.w3-dark-teal(type='submit') PUT
-            form.w3-container(method='GET' action='/api/files' target='iframe_result')
-                p
-                    label.w3-text-dark-teal
-                        b Get the shared files list (/api/files)
-                p
-                    button.w3-btn.w3-dark-teal(type='submit') GET
-            form.w3-container(method='GET' action='/api/files' target='_blank')
-                p
-                    label.w3-text-dark-teal(for="filenameInput")
-                        b Get a shared file (/api/files/:filename)
-                    input.w3-input.w3-border.w3-round(id='filenameInput' name='filename' type='text' placeholder='filename')
-                p
-                    button.w3-btn.w3-dark-teal(type='submit') GET
-            form.w3-container(method='POST' action='/api/files' enctype="multipart/form-data" target='iframe_result')
-                p
-                    label.w3-text-dark-teal(for="filepathInput")
-                        b Upload a new file (/api/files)
-                    input.w3-input.w3-border.w3-round(id='filepathInput' name='file' type='file')
-                p
-                    button.w3-btn.w3-dark-teal(type='submit') POST
+
+            - const clist= clients
+            ul.w3-ul
+                li
+                    h2 List of clients:
+                if clist.length === 0
+                    li.w3-bar
+                        p.w3-bar-item There is no client
+                else
+                    each client in clist
+                        li.w3-bar
+                            .w3-bar-item #{client.ip}: #{client.status}

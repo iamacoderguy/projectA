@@ -7,6 +7,7 @@ const pug = require('pug');
 
 const { getSharedPath } = require('../../../helpers/sharedPathHelper');
 const { getIpAddress, getPort } = require('../../../helpers/networkHelper');
+const { getClients } = require('../../../helpers/clientHelper');
 
 describe('/', () => {
     beforeEach(() => {
@@ -39,10 +40,11 @@ describe('/', () => {
             // arrange
             const renderPug = data => pug.renderFile('views/dashboardView.pug', data);
             const expectedDashboardView = renderPug({
-                path: "",
+                path: getSharedPath(),
                 dashboardName: 'Server-A Dashboard',
                 ipAddress: getIpAddress(),
-                port: getPort()
+                port: getPort(),
+                clients: getClients()
             });
 
             // act
