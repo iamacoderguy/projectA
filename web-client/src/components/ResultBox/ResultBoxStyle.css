@@ -1,0 +1,14 @@
+.result-box {
+  display: block;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  width: 100%;
+  height: 200px;
+  padding: 10px;
+  border: 2px;
+  border-color: initial;
+  border-style: inset;
+  font-family: monospace;
+}
