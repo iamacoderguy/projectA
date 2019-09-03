@@ -1,6 +1,6 @@
 const sharedPathHelper = require('../helpers/sharedPathHelper');
 const networkHelper = require('../helpers/networkHelper');
-const clientHelper = require('../helpers/clientHelper');
+const db_Clients = require('../models/db_Clients');
 
 module.exports.renderAPIDashboard = function (req, res) {
     res.render('apiDashboardView', {
@@ -17,6 +17,6 @@ module.exports.renderDashboard = function (req, res) {
         dashboardName: 'Server-A Dashboard',
         ipAddress: networkHelper.getIpAddress(),
         port: networkHelper.getPort(),
-        clients: clientHelper.getClients()
+        clients: db_Clients.getClients()
     });
 }

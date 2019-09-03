@@ -31,4 +31,4 @@ html(lang="en-US")
                 else
                     each client in clist
                         li.w3-bar
-                            .w3-bar-item #{client.ip}: #{client.status}
+                            .w3-bar-item #{client.ip}: #{client.getStatus()}

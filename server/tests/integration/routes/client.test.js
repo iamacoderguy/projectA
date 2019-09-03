@@ -7,7 +7,7 @@ const pug = require('pug');
 
 const { getSharedPath } = require('../../../helpers/sharedPathHelper');
 const { getIpAddress, getPort } = require('../../../helpers/networkHelper');
-const { getClients } = require('../../../helpers/clientHelper');
+const { getClients } = require('../../../models/db_Clients');
 
 describe('/', () => {
     beforeEach(() => {

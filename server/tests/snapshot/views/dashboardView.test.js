@@ -2,14 +2,18 @@
 const each = require('jest-each').default;
 const pug = require('pug');
 const renderPug = (view, data) => pug.renderFile(view, data);
+const Client = require('../../../models/client');
+const db_ExpCodes = require('../models/db_ExpCodes');
 
 describe('views/dashboardView', () => {
+    const client1 = new Client('111.222.333.444');
+    const client2 = new Client('111.222.333.555');
+    const client3 = new Client('111.222.333.666');
+
+    db_ExpCodes.setExpCode(client1);
+
     each([
-        [[
-            { ip: '111.222.333.444', status: 'connected' },
-            { ip: '111.222.333.555', status: 'expired' },
-            { ip: '111.222.333.666', status: 'disconnected' }
-        ]],
+        [[client1, client2, client3]],
         [[]]
     ]).it('should render dashboardView correctly in case %o', (clients) => {
         expect(renderPug('views/dashboardView.pug', {
