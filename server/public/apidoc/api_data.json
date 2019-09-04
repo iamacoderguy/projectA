@@ -35,10 +35,23 @@
     "group": "B_auth",
     "permission": [
       {
-        "name": "none"
+        "name": "none (for making new connect) || connected users (for refreshing token)"
       }
     ],
-    "description": "<p>It will make a connection between the client and the server</p>",
+    "header": {
+      "fields": {
+        "Header (optional)": [
+          {
+            "group": "Header (optional)",
+            "type": "String",
+            "optional": false,
+            "field": "x-auth-token",
+            "description": "<p>The token got from /api/auth/connect. Only needed when refreshing the connection.</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>It will (make a new / refresh current) connection between the client and the server</p>",
     "success": {
       "fields": {
         "Success": [
@@ -74,13 +87,26 @@
   {
     "type": "post",
     "url": "/api/auth/disconnect",
-    "title": "1. disconnect from server",
+    "title": "2. disconnect from server",
     "group": "B_auth",
     "permission": [
       {
         "name": "connected users"
       }
     ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "x-auth-token",
+            "description": "<p>The token got from /api/auth/connect</p>"
+          }
+        ]
+      }
+    },
     "description": "<p>It will remove the connection between the client and the server</p>",
     "success": {
       "fields": {
