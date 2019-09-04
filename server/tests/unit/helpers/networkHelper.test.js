@@ -1,5 +1,6 @@
+const each = require('jest-each').default;
 const os = require('os');
-const { getIpAddress } = require('../../../helpers/networkHelper');
+const { getServerIpAddress, isFromLocalhost } = require('../../../helpers/networkHelper');
 
 describe('getIpAddress', () => {
     it('should return the first external IPv4 address', () => {
@@ -51,9 +52,27 @@ describe('getIpAddress', () => {
         });
 
         // act
-        const actualAddress = getIpAddress();
+        const actualAddress = getServerIpAddress();
 
         // assert
         expect(actualAddress).toBe(expectedAddress);
+    })
+})
+
+describe('isFromLocalhost', () => {
+    each([['127.0.0.1'], ['::1'], ['::127.0.0.1'], ['::ffff:127.0.0.1']]).it('should return true when ipAddr = %s', (ipAddr) => {
+        // act
+        const result = isFromLocalhost(ipAddr);
+
+        // assert
+        expect(result).toBe(true);
+    })
+
+    each([['192.168.7.2'], [''], [':192:125.0.0.1'], ['::ffff:157.0.0.1']]).it('should return false when ipAddr = %s', (ipAddr) => {
+        // act
+        const result = isFromLocalhost(ipAddr);
+
+        // assert
+        expect(result).toBe(false);
     })
 })

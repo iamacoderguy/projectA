@@ -1,55 +1,52 @@
+const each = require('jest-each').default;
 const request = require('supertest');
-const app = require('../../../startup/app');
-
-const render = require('../../../controllers/render');
-const renderDashboardOri = render.renderDashboard;
-const pug = require('pug');
-
-const { getSharedPath } = require('../../../helpers/sharedPathHelper');
-const { getIpAddress, getPort } = require('../../../helpers/networkHelper');
+let app;
 
 describe('/', () => {
     beforeEach(() => {
-        render.renderDashboard = renderDashboardOri;
+        app = require('../../../startup/app');
     });
+    afterEach(() => jest.resetModules());
 
     describe('GET /', () => {
-        it('should return 200', async () => {
+        each([['client is on localhost', true], ['client is NOT on localhost', false]]).it('should return 200 in case %s', async (_, casevalue) => {
+            // arrange
+            const networkHelper = require('../../../helpers/networkHelper');
+            networkHelper.isFromLocalhost = jest.fn().mockReturnValue(casevalue);
+
             // act
             const res = await request(app).get('/');
 
             // assert
             expect(res.status).toBe(200);
-        });
+        })
 
-        it('should trigger renderDashboard', async () => {
+        each([['client is on localhost', true], ['client is NOT on localhost', false]]).it('should render adminDashboardView correctly in case %s', async (_, casevalue) => {
             // arrange
-            render.renderDashboard = jest.fn((req, res) => {
-                res.send();
-            })
+            const serverIpAddr = '192.168.5.1';
+            const serverPort = 3000;
+            const networkHelper = require('../../../helpers/networkHelper');
+            networkHelper.getServerIpAddress = jest.fn().mockReturnValue(serverIpAddr);
+            networkHelper.getServerPort = jest.fn().mockReturnValue(serverPort);
+            networkHelper.isFromLocalhost = jest.fn().mockReturnValue(casevalue);
 
-            // act
-            await request(app).get('/');
+            const sharedPath = 'path-to-files';
+            const sharedPathHelper = require('../../../helpers/sharedPathHelper');
+            sharedPathHelper.getSharedPath = jest.fn().mockReturnValue(sharedPath);
 
-            // assert
-            expect(render.renderDashboard).toHaveBeenCalled();
-        });
-
-        it('should render dashboardView correctly', async () => {
-            // arrange
-            const renderPug = data => pug.renderFile('views/dashboardView.pug', data);
-            const expectedDashboardView = renderPug({
-                path: "",
-                dashboardName: 'Server-A Dashboard',
-                ipAddress: getIpAddress(),
-                port: getPort()
-            });
+            const db_Clients = require('../../../models/db_Clients');
+            const Client = require('../../../models/client');
+            const client1 = new Client('111.222.333.444');
+            const client2 = new Client('111.222.333.555');
+            const client3 = new Client('111.222.333.666');
+            client1.expCode = 0; client2.expCode = NaN; client3.expCode = 2;
+            db_Clients.getClients = jest.fn().mockReturnValue([client1, client2, client3]);
 
             // act
             const res = await request(app).get('/');
 
             // assert
-            expect(res.text).toBe(expectedDashboardView);
-        });
-    });
-});
+            expect(res.text).toMatchSnapshot();
+        })
+    })
+})
