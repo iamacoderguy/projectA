@@ -11,8 +11,8 @@ module.exports.renderAPIDashboard = function (req, res) {
     });
 }
 
-module.exports.renderDashboard = function (req, res) {
-    res.render('dashboardView', {
+module.exports.renderAdminDashboard = function (req, res) {
+    res.render('adminDashboardView', {
         path: sharedPathHelper.getSharedPath(),
         dashboardName: 'Server-A Dashboard',
         ipAddress: networkHelper.getIpAddress(),

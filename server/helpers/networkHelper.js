@@ -1,6 +1,6 @@
 const os = require('os');
 
-module.exports.getIpAddress = function() {
+module.exports.getIpAddress = function () {
     let interfaces = os.networkInterfaces();
     let addresses = [];
 
@@ -16,6 +16,10 @@ module.exports.getIpAddress = function() {
     return addresses[0];
 }
 
-module.exports.getPort = function() {
+module.exports.getPort = function () {
     return process.env.PORT || 3000;
+}
+
+module.exports.isFromLocalhost = function (ipAddr) {
+    return ipAddr.indexOf('127.0.0.1') !== -1 || ipAddr.indexOf('::1') !== -1;
 }
