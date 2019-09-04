@@ -9,9 +9,10 @@ const networkHelper = require('../helpers/networkHelper');
 /**
  * @api {post} /api/auth/connect 1. connect to server
  * @apiGroup B.auth
- * @apiPermission none
+ * @apiPermission none (for making new connect) || connected users (for refreshing token)
+ * @apiHeader (Header (optional)) {String} x-auth-token The token got from /api/auth/connect. Only needed when refreshing the connection.
  *
- * @apiDescription It will make a connection between the client and the server
+ * @apiDescription It will (make a new / refresh current) connection between the client and the server
  * @apiSuccess (Success) {Number} status 200
  * @apiSuccess (Success) {String} body The token
  * @apiSuccessExample {string} Success-Response:
@@ -20,18 +21,28 @@ const networkHelper = require('../helpers/networkHelper');
 router.post('/connect', (req, res) => {
     const ipAddr = networkHelper.getIpAddressFromReq(req);
     const client = db_Clients.getClient(ipAddr);
-    client.createNewSession();
 
-    const jwt = client.generateAuthToken();
-    debug(jwt);
+    if (client.getStatus() === 'connecting') {
+        auth(req, res, () => {
+            client.createNewSession();
+            const jwt = client.generateAuthToken();
+            debug(jwt);
+            res.status(200).send(jwt);
+        });
+    } else {
+        client.createNewSession();
+        const jwt = client.generateAuthToken();
+        debug(jwt);
 
-    res.status(200).send(jwt);
+        res.status(200).send(jwt);
+    }
 })
 
 /**
- * @api {post} /api/auth/disconnect 1. disconnect from server
+ * @api {post} /api/auth/disconnect 2. disconnect from server
  * @apiGroup B.auth
  * @apiPermission connected users
+ * @apiHeader {String} x-auth-token The token got from /api/auth/connect
  *
  * @apiDescription It will remove the connection between the client and the server
  * @apiSuccess (Success) {Number} status 200

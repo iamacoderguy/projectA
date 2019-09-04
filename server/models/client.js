@@ -83,7 +83,7 @@ Client.prototype.getIpAddr = function() {
 }
 
 Client.prototype.getStatus = function() {
-    return Object.is(this.expCode, NaN) ? "disconnected" : "connected";
+    return Object.is(this.expCode, NaN) ? "disconnected" : "connecting";
 }
 
 module.exports = Client;
