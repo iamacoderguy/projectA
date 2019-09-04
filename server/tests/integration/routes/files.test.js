@@ -36,16 +36,16 @@ describe(endpoint, () => {
     const connectEndpoint = '/api/auth/connect';
     const disconnectEndpoint = '/api/auth/disconnect';
 
-    beforeEach(async () => {
-        const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
-        token = res.text;
-    });
-
-    afterEach(async () => {
-        await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
-    });
-
     describe('GET /', () => {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+        });
+
         function getFiles() {
             return request(app)
                 .get(endpoint)
@@ -95,8 +95,16 @@ describe(endpoint, () => {
     })
 
     describe('GET /:filename', () => {
-        beforeEach(() => { setSharedPath(validSharedPath); });
-        afterEach(() => { setSharedPath(''); });
+        beforeEach(async () => {
+            setSharedPath(validSharedPath);
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+            setSharedPath('');
+        });
 
         function getFile(fname) {
             const url = endpoint + '/' + fname;
@@ -144,6 +152,15 @@ describe(endpoint, () => {
     })
 
     describe('GET ?filename=', () => {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+        });
+
         function getFile(fname) {
             const url = endpoint + '?filename=' + fname;
             return request(app)
@@ -177,6 +194,15 @@ describe(endpoint, () => {
     })
 
     describe('POST /', () => {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+        });
+        
         function postFile(filename) {
             const filePath = path.join(__dirname, 'postFiles', filename);
             return request(app)
@@ -275,10 +301,18 @@ describe(endpoint, () => {
     })
 
     describe('PUT /path', () => {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-auth-token', token);
+        });
+
         function putPath(path) {
             return request(app)
                 .put(endpoint + '/path')
-                .set('x-forwarded-for', clientIpAddr)
                 .set('x-auth-token', token)
                 .send({ path: path });
         }

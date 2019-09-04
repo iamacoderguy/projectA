@@ -8,6 +8,7 @@ const { promisify } = require('util');
 
 const express = require('express');
 const router = express.Router();
+const admin = require('../middleware/admin');
 
 const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
 const { getAvailableName, tmpDirPath } = require('../helpers/sharedFileHelper');
@@ -85,7 +86,7 @@ router.post('/', (req, res) => {
         });
 })
 
-router.put('/path', (req, res) => {
+router.put('/path', admin, (req, res) => {
     debug('req.body: ', req.body);
 
     const newPath = req.body.path;

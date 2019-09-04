@@ -6,8 +6,8 @@ module.exports.renderAPIDashboard = function (req, res) {
     res.render('apiDashboardView', {
         path: sharedPathHelper.getSharedPath(),
         dashboardName: 'Server-A Dashboard',
-        ipAddress: networkHelper.getIpAddress(),
-        port: networkHelper.getPort()
+        ipAddress: networkHelper.getServerIpAddress(),
+        port: networkHelper.getServerPort()
     });
 }
 
@@ -15,8 +15,8 @@ module.exports.renderAdminDashboard = function (req, res) {
     res.render('adminDashboardView', {
         path: sharedPathHelper.getSharedPath(),
         dashboardName: 'Server-A Dashboard',
-        ipAddress: networkHelper.getIpAddress(),
-        port: networkHelper.getPort(),
+        ipAddress: networkHelper.getServerIpAddress(),
+        port: networkHelper.getServerPort(),
         clients: db_Clients.getClients()
     });
 }

@@ -12,19 +12,28 @@ html(lang="en-US")
                 h2 #{dashboardName} - #{ipAddress}:#{port}
             p
                 iframe(width='100%' height='200vw' title='Result box' srcdoc='<i>Result...</i>' name='iframe_result')
-            form.w3-container(method='POST' action='/api/files/path?_method=PUT' target='iframe_result')
+
+            form.w3-container(method='POST' action='/api/auth/connect' target='iframe_result')
                 p
-                    label.w3-text-dark-teal(for="sharedPathInput")
-                        b Set a new shared path (/api/files/path)
-                    input.w3-input.w3-border.w3-round(id='sharedPathInput' name='path' type='text' placeholder='path-to-files' value=path)
+                    label.w3-text-dark-teal()
+                        b Connect to server (/api/files/auth/connect)
                 p
-                    button.w3-btn.w3-dark-teal(type='submit') PUT
+                    button.w3-btn.w3-dark-teal(type='submit') POST
+            
+            form.w3-container(method='POST' action='/api/auth/disconnect' target='iframe_result')
+                p
+                    label.w3-text-dark-teal()
+                        b Disconnect to server (/api/files/auth/disconnect)
+                p
+                    button.w3-btn.w3-dark-teal(type='submit') POST
+            
             form.w3-container(method='GET' action='/api/files' target='iframe_result')
                 p
                     label.w3-text-dark-teal
                         b Get the shared files list (/api/files)
                 p
                     button.w3-btn.w3-dark-teal(type='submit') GET
+            
             form.w3-container(method='GET' action='/api/files' target='_blank')
                 p
                     label.w3-text-dark-teal(for="filenameInput")
@@ -32,6 +41,7 @@ html(lang="en-US")
                     input.w3-input.w3-border.w3-round(id='filenameInput' name='filename' type='text' placeholder='filename')
                 p
                     button.w3-btn.w3-dark-teal(type='submit') GET
+            
             form.w3-container(method='POST' action='/api/files' enctype="multipart/form-data" target='iframe_result')
                 p
                     label.w3-text-dark-teal(for="filepathInput")

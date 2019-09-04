@@ -26,8 +26,8 @@ describe('/', () => {
             const serverIpAddr = '192.168.5.1';
             const serverPort = 3000;
             const networkHelper = require('../../../helpers/networkHelper');
-            networkHelper.getIpAddress = jest.fn().mockReturnValue(serverIpAddr);
-            networkHelper.getPort = jest.fn().mockReturnValue(serverPort);
+            networkHelper.getServerIpAddress = jest.fn().mockReturnValue(serverIpAddr);
+            networkHelper.getServerPort = jest.fn().mockReturnValue(serverPort);
             networkHelper.isFromLocalhost = jest.fn().mockReturnValue(casevalue);
 
             const sharedPath = 'path-to-files';

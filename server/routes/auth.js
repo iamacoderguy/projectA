@@ -4,9 +4,10 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 
 const db_Clients = require('../models/db_Clients');
+const networkHelper = require('../helpers/networkHelper');
 
 router.post('/connect', (req, res) => {
-    const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const ipAddr = networkHelper.getIpAddressFromReq(req);
     const client = db_Clients.getClient(ipAddr);
     client.createNewSession();
 
@@ -17,7 +18,7 @@ router.post('/connect', (req, res) => {
 })
 
 router.post('/disconnect', auth, (req, res) => {
-    const ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const ipAddr = networkHelper.getIpAddressFromReq(req);
     const client = db_Clients.getClient(ipAddr);
     client.cleanAllSessions();
 
