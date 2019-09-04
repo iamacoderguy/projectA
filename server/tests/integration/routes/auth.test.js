@@ -11,18 +11,33 @@ describe(endpoint, () => {
     const connectEndpoint = endpoint + '/connect';
     const disconnectEndpoint = endpoint + '/disconnect';
 
+    const clientIpAddr = '192.168.1.7';
+
+    function postDisconnect(token) {
+        return request(app)
+            .post(disconnectEndpoint)
+            .set('x-forwarded-for', clientIpAddr)
+            .set('x-auth-token', token);
+    }
+
+    function postConnect(ipAddr) {
+        return request(app)
+            .post(connectEndpoint)
+            .set('x-forwarded-for', !ipAddr ? clientIpAddr : ipAddr);
+    }
+
     describe('POST /connect', () => {
         it('should always return 200', async () => {
             // act
-            const res = await request(app).post(connectEndpoint);
+            const res = await postConnect();
 
             // assert
             expect(res.status).toBe(200);
         })
-    
+
         it('should always return a valid jwt', async () => {
             // act
-            const res = await request(app).post(connectEndpoint);
+            const res = await postConnect();
 
             // assert
             const token = res.text;
@@ -38,12 +53,11 @@ describe(endpoint, () => {
 
         it('should disable previous jwts of the client', async () => {
             // arrange
-            const clientIpAddr = '192.168.1.7';
-            let res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            let res = await postConnect();
             const previousToken = res.text;
 
             // act
-            res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            res = await postConnect();
             const currentToken = res.text;
 
             // assert
@@ -56,9 +70,27 @@ describe(endpoint, () => {
     })
 
     describe('POST /disconnect', () => {
-        it('should always return 200', async () => {
+
+        it('should return 401 if disconnecting other clients', async () => {
+            // arrange
+            const otherClientIpAddr = "111.222.1.3";
+            let res = await postConnect(otherClientIpAddr);
+            const token = res.text;
+
             // act
-            const res = await request(app).post(disconnectEndpoint);
+            res = await postDisconnect(token);
+
+            // assert
+            expect(res.status).toBe(401);
+        })
+
+        it('should return 200 if disconnect current client', async () => {
+            // arrange
+            let res = await postConnect();
+            const token = res.text;
+
+            // act
+            res = await postDisconnect(token);
 
             // assert
             expect(res.status).toBe(200);
@@ -66,12 +98,11 @@ describe(endpoint, () => {
 
         it('should disable all jwt of the client', async () => {
             // arrange
-            const clientIpAddr = '192.168.1.7';
-            let res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            let res = await postConnect();
             const previousToken = res.text;
 
             // act
-            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr);
+            await postDisconnect(previousToken);
 
             // assert
             const previousErr = authHelper.verify(clientIpAddr, previousToken);

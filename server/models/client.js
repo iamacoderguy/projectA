@@ -2,10 +2,11 @@ const config = require('config');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const secret = config.get('jwtPrivateKey');
+const networkHelper = require('../helpers/networkHelper');
 
 function Client(ipAddr) {
     this.id = encrypt(ipAddr);
-    this.isAdmin = ipAddr.indexOf('127.0.0.1') !== -1 ? true : false;
+    this.isAdmin = networkHelper.isFromLocalhost(ipAddr);
     this.expCode = NaN;
 }
 
@@ -70,7 +71,7 @@ Client.prototype.verifyToken = function (token) {
 }
 
 Client.prototype.createNewSession = function() {
-    this.expCode = Object.is(this.expCode, NaN) ? 0 : this.expCode + 1;
+    this.expCode = Date.now();
 }
 
 Client.prototype.cleanAllSessions = function() {
