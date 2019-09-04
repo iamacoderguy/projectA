@@ -1,13 +1,12 @@
 import React, {Component} from 'react';
 import './App.css';
-import ResultBox from './components/ResultBox/ResultBox';
-import DashboardForms from './components/DashboardForms/DashboardForms';
+import DashboardView from './components/DashboardView/DashboardView';
 
 class App extends Component{
 
-  state = {
-    result: ""
-  };
+  handleSubmit = (method, api, value) =>{
+    console.log(method + " " + value + " to " + api);
+  }
 
   render(){
     return (
@@ -16,8 +15,9 @@ class App extends Component{
           <h2>Client-A Dashboard - </h2>
         </div>
         <div className="App-dashboard-forms-container">
-          <ResultBox />
-          <DashboardForms/>
+          <DashboardView
+            onSubmit = {this.handleSubmit}
+          />
         </div>
       </main>
     );

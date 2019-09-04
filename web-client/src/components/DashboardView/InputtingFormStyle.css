@@ -1,0 +1,13 @@
+.inputting-form {
+    padding: 16px 0px;
+}
+
+.inputting-form label {
+    color: #006161;
+    font-size: 18px;
+}
+
+.inputting-form button {
+    background-color: #006161;
+    color: white;
+}
