@@ -1,0 +1,8 @@
+{
+  "name": "server-a",
+  "version": "0.0.1",
+  "description": "APIs documentation",
+  "template": {
+    "withCompare": false
+  }
+}
