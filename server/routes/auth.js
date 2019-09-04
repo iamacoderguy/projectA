@@ -18,23 +18,22 @@ const networkHelper = require('../helpers/networkHelper');
  * @apiSuccessExample {string} Success-Response:
  *          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ2M2Q3MWVlOGU3Zjk2Y2ZlYTk4MTllOWI5ZGNiNWY0IiwiaXNBZG1pbiI6dHJ1ZSwiZXhwQ29kZSI6MTU2NzU5MjA2NDAwMCwiaWF0IjoxNTY3NTkyMDY0LCJleHAiOjE1Njc1OTI5NjR9.bqtY5HAA6CToZk6bVtIoGbZP880MdgtSZmksQ0QevZg
  */
+
+ function createNewSession(res, client) {
+    client.createNewSession();
+    const jwt = client.generateAuthToken();
+    debug(jwt);
+    res.status(200).send(jwt);
+ }
+
 router.post('/connect', (req, res) => {
     const ipAddr = networkHelper.getIpAddressFromReq(req);
     const client = db_Clients.getClient(ipAddr);
 
     if (client.getStatus() === 'connecting') {
-        auth(req, res, () => {
-            client.createNewSession();
-            const jwt = client.generateAuthToken();
-            debug(jwt);
-            res.status(200).send(jwt);
-        });
+        auth(req, res, () => createNewSession(res, client));
     } else {
-        client.createNewSession();
-        const jwt = client.generateAuthToken();
-        debug(jwt);
-
-        res.status(200).send(jwt);
+        createNewSession(res, client);
     }
 })
 
