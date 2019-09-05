@@ -1,3 +1,4 @@
+const each = require('jest-each').default;
 const request = require('supertest');
 let app;
 
@@ -10,26 +11,21 @@ describe('/', () => {
     describe('GET /', () => {
 
         describe('when client is on localhost', () => {
-            it('should return 200', async () => {
-                // arrange
-                const networkHelper = require('../../../helpers/networkHelper');
-                networkHelper.isFromLocalhost = jest.fn().mockReturnValue(true);
-    
+            each([['127.0.0.1'], ['::1']]).it('should return 200 in case request ip = %s', async (ipAddr) => {
                 // act
-                const res = await request(app).get('/');
+                const res = await request(app).get('/').set('x-forwarded-for', ipAddr);
     
                 // assert
                 expect(res.status).toBe(200);
             })
 
-            it('should render adminDashboardView correctly', async () => {
+            each([['127.0.0.1'], ['::1']]).it('should render adminDashboardView correctly in case request ip = %s', async (ipAddr) => {
                 // arrange
                 const serverIpAddr = '192.168.5.1';
                 const serverPort = 3000;
                 const networkHelper = require('../../../helpers/networkHelper');
                 networkHelper.getServerIpAddress = jest.fn().mockReturnValue(serverIpAddr);
                 networkHelper.getServerPort = jest.fn().mockReturnValue(serverPort);
-                networkHelper.isFromLocalhost = jest.fn().mockReturnValue(true);
     
                 const sharedPath = 'path-to-files';
                 const sharedPathHelper = require('../../../helpers/sharedPathHelper');
@@ -44,7 +40,7 @@ describe('/', () => {
                 db_Clients.getClients = jest.fn().mockReturnValue([client1, client2, client3]);
     
                 // act
-                const res = await request(app).get('/');
+                const res = await request(app).get('/').set('x-forwarded-for', ipAddr);
     
                 // assert
                 expect(res.text).toMatchSnapshot();
@@ -52,13 +48,16 @@ describe('/', () => {
         })
 
         describe('when client is NOT on localhost', () => {
-            it('should redirect to apidoc/index.html', async () => {
+            each([
+                ['requestIp is as same as serverIp', '192.168.5.1', '192.168.5.1'],
+                ['requestIp is diff from serverIp', '192.168.5.1', '192.168.5.2']
+            ]).it('should redirect to apidoc/index.html in case %s', async (_, serverIpAddr, clientIpAddr) => {
                 // arrange
                 const networkHelper = require('../../../helpers/networkHelper');
-                networkHelper.isFromLocalhost = jest.fn().mockReturnValue(false);
+                networkHelper.getServerIpAddress = jest.fn().mockReturnValue(serverIpAddr);
     
                 // act
-                const res = await request(app).get('/');
+                const res = await request(app).get('/').set('x-forwarded-for', clientIpAddr);
     
                 // assert
                 expect(res.status).toBe(302);
