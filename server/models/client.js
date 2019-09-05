@@ -1,29 +1,14 @@
 const config = require('config');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const secret = config.get('jwtPrivateKey');
+const jwt = require('jsonwebtoken');
 const networkHelper = require('../helpers/networkHelper');
+const { encrypt, decrypt } = require('../helpers/cryptoHelper');
+const pinHelper = require('../helpers/pinHelper');
 
 function Client(ipAddr) {
-    this.id = encrypt(ipAddr);
+    this.id = encrypt(ipAddr, secret);
     this.isAdmin = networkHelper.isFromLocalhost(ipAddr);
     this.expCode = NaN;
-}
-
-function encrypt(str) {
-    const cipher = crypto.createCipher('aes-256-cbc', secret);
-    let encryptedStr = cipher.update(str, 'utf-8', 'hex');
-    encryptedStr += cipher.final('hex');
-
-    return encryptedStr;
-}
-
-function decrypt(encryptedStr) {
-    const decipher = crypto.createDecipher('aes-256-cbc', secret);
-    var str = decipher.update(encryptedStr, 'hex', 'utf-8');
-    str += decipher.final('utf-8');
-
-    return str;
 }
 
 Client.prototype.generateAuthToken = function () {
@@ -33,7 +18,10 @@ Client.prototype.generateAuthToken = function () {
         { expiresIn: '15m' }
     );
 
-    return token;
+    const pin = pinHelper.getPin();
+    const encryptedToken = encrypt(token, pin);
+
+    return encryptedToken;
 }
 
 Client.prototype.verifyToken = function (token) {
@@ -79,7 +67,7 @@ Client.prototype.cleanAllSessions = function() {
 }
 
 Client.prototype.getIpAddr = function() {
-    return decrypt(this.id);
+    return decrypt(this.id, secret);
 }
 
 Client.prototype.getStatus = function() {
