@@ -1,0 +1,17 @@
+.App {
+  padding: 0 16px;
+}
+
+.App-header {
+  background-color: #006161;
+  padding: 4px 16px;
+  color: white;
+}
+
+.App-header h2 {
+  display: block;
+  font-family: "Segoe UI",Arial,sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  margin: 10px 0;
+}
