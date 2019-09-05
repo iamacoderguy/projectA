@@ -8,7 +8,11 @@ module.exports.getServerIpAddress = function () {
         let network = interfaces[k];
         network.forEach(ip => {
             if (ip.family === 'IPv4' && !ip.internal) {
-                addresses.push(ip.address);
+                if (k === 'Ethernet') {
+                    addresses.unshift(ip.address);
+                } else {
+                    addresses.push(ip.address);
+                }
             }
         })
     }
