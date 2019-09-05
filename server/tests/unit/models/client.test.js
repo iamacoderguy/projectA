@@ -1,7 +1,8 @@
-const Client = require('../../../models/client');
 const config = require('config');
 const jwt = require('jsonwebtoken');
 const { encrypt, decrypt } = require('../../../helpers/cryptoHelper');
+
+let Client = require('../../../models/client');
 
 describe('generateAuthToken', () => {
     afterEach(() => jest.resetModules());
@@ -10,8 +11,9 @@ describe('generateAuthToken', () => {
         // arrange
         const pinCode = '1234';
         const pinHelper = require('../../../helpers/pinHelper');
-        pinHelper.getPin = jest.fn().mockReturnValue('1234');
+        pinHelper.setPin(pinCode);
 
+        Client = require('../../../models/client');
         const ipAddr = "123.0.1.5";
         const client = new Client(ipAddr);
 
@@ -28,6 +30,123 @@ describe('generateAuthToken', () => {
             expCode: expect.any(Number),
             exp: expect.any(Number)
         });
+    })
+})
+
+describe('verifyToken', () => {
+    afterEach(() => jest.resetModules());
+
+    it('should return null if the token is valid', () => {
+        // arrange
+        const pinCode = '123457';
+        const pinHelper = require('../../../helpers/pinHelper');
+        pinHelper.setPin(pinCode);
+
+        Client = require('../../../models/client');
+        const ipAddr = "123.0.1.7";
+        const client = new Client(ipAddr);
+        client.createNewSession();
+        const token = client.generateAuthToken();
+
+        // act
+        const err = client.verifyToken(token);
+
+        // assert
+        expect(err).toBeNull();
+    })
+
+    it('should return IncorrectPasscodeError with message containing pin changed if the token is encrypted by incorrect pin', () => {
+        // arrange
+        const pinCode = '123457';
+        const pinHelper = require('../../../helpers/pinHelper');
+        pinHelper.setPin(pinCode);
+
+        Client = require('../../../models/client');
+        const ipAddr = "123.0.1.7";
+        const client = new Client(ipAddr);
+        client.createNewSession();
+        const token = client.generateAuthToken();
+
+        const newPinCode = '123457478';
+        pinHelper.setPin(newPinCode);
+
+        // act
+        const err = client.verifyToken(token);
+
+        // assert
+        expect(err.name).toBe('IncorrectPasscodeError');
+        expect(err.message).toMatch(/pin/i);
+        expect(err.message).toMatch(/changed/i);
+    })
+
+    it('should return IdMismatchedError if the token belongs to another client', () => {
+        // arrange
+        const pinCode = '123457';
+        const pinHelper = require('../../../helpers/pinHelper');
+        pinHelper.setPin(pinCode);
+
+        Client = require('../../../models/client');
+        const ipAddr = "123.0.1.7";
+        const client = new Client(ipAddr);
+        client.createNewSession();
+
+        const anotherIpAddr = "123.0.1.8";
+        const anotherClient = new Client(anotherIpAddr);
+        anotherClient.createNewSession();
+        const anotherToken = anotherClient.generateAuthToken();
+        
+
+        // act
+        const err = client.verifyToken(anotherToken);
+
+        // assert
+        expect(err.name).toBe('IdMismatchedError');
+    })
+
+    it('should return DisconnectedError if the client is disconnected', () => {
+        // arrange
+        const pinCode = '123457';
+        const pinHelper = require('../../../helpers/pinHelper');
+        pinHelper.setPin(pinCode);
+
+        Client = require('../../../models/client');
+        const ipAddr = "123.0.1.7";
+        const client = new Client(ipAddr);
+        client.createNewSession();
+        const token = client.generateAuthToken();
+        client.cleanAllSessions();
+
+        // act
+        const err = client.verifyToken(token);
+
+        // assert
+        expect(err.name).toBe('DisconnectedError');
+    })
+
+    it('should return TokenExpiredError with message expCode expired if the expCode is out-of-date', () => {
+        // arrange
+        const pinCode = '123457';
+        const pinHelper = require('../../../helpers/pinHelper');
+        pinHelper.setPin(pinCode);
+
+        Client = require('../../../models/client');
+        const ipAddr = "123.0.1.7";
+        const client = new Client(ipAddr);
+        client.createNewSession();
+        const token = client.generateAuthToken();
+
+        // simulate that the session will be renew after 50 milliseconds
+        jest.useFakeTimers();
+        setTimeout(() => {
+            client.createNewSession();
+        }, 50);
+        jest.runAllTimers()
+
+        // act
+        const err = client.verifyToken(token);
+
+        // assert
+        expect(err.name).toBe('TokenExpiredError');
     })
 })
 

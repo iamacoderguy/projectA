@@ -26,7 +26,9 @@ Client.prototype.generateAuthToken = function () {
 
 Client.prototype.verifyToken = function (token) {
     try {
-        const decoded = jwt.verify(token, secret);
+        const pin = pinHelper.getPin();
+        const decryptedToken = decrypt(token, pin);
+        const decoded = jwt.verify(decryptedToken, secret);
 
         if (decoded.id !== this.id) {
             return {
@@ -54,6 +56,12 @@ Client.prototype.verifyToken = function (token) {
 
         return null;
     } catch (err) {
+        if (err.message && err.message.indexOf('bad decrypt') !== -1) {
+            return {
+                name: 'IncorrectPasscodeError',
+                message: 'pin is changed'
+            }
+        }
         return err;
     }
 }

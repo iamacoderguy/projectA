@@ -1,3 +1,9 @@
+let pin = '';
+
 module.exports.getPin = function () {
-    return "1234";
+    return pin;
+}
+
+module.exports.setPin = function (newPin) {
+    pin = newPin;
 }
