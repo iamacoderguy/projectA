@@ -8,14 +8,10 @@ const { promisify } = require('util');
 
 const express = require('express');
 const router = express.Router();
+const admin = require('../middleware/admin');
 
 const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
 const { getAvailableName, tmpDirPath } = require('../helpers/sharedFileHelper');
-
-// /api/files
-/// GET - returns list of shared files
-/// GET ./{filepath / filename / id} - returns the file
-/// PUT /path - update shared path
 
 const statPromise = promisify(fs.stat);
 const readdirPromise = promisify(fs.readdir);
@@ -32,6 +28,21 @@ function handleErrorPath(err, res) {
     res.status(500).send('something failed.');
 }
 
+/**
+ * @api {get} /api/files 1. get the shared files list
+ * @apiGroup C.files
+ * @apiPermission connected users
+ * @apiHeader {String} x-auth-token The token got from /api/auth/connect
+ *
+ * @apiDescription It will return the list of files in the shared folder
+ * @apiSuccess (Success) {Number} status 200
+ * @apiSuccess (Success) {String[]} body List of shared files
+ * @apiSuccessExample {json} Success-Response:
+ *          [
+ *              "file 1.ext",
+ *              "file 2.ext"
+ *          ]
+ */
 router.get('/', (req, res) => {
     if (req.query.filename) {
         const urlWithoutQuery = url.parse(req.originalUrl).pathname;
@@ -52,6 +63,17 @@ router.get('/', (req, res) => {
         });
 })
 
+/**
+ * @api {get} /api/files/:filename 2. get a shared file
+ * @apiGroup C.files
+ * @apiPermission connected users
+ * @apiHeader {String} x-auth-token The token got from /api/auth/connect
+ *
+ * @apiDescription It will return a shared file in the shared folder
+ * @apiParam {String} filename The shared file's name
+ * @apiSuccess (Success) {Number} status 200
+ * @apiSuccess (Success) {file} body The shared file
+ */
 router.get('/:filename', (req, res) => {
     const sharedFilePath = path.join(getSharedPath(), req.params.filename);
     debug('SharedFilePath: ' + sharedFilePath);
@@ -61,6 +83,19 @@ router.get('/:filename', (req, res) => {
         .catch(err => handleErrorPath(err, res));
 })
 
+/**
+ * @api {post} /api/files 3. upload a file
+ * @apiGroup C.files
+ * @apiPermission connected users
+ * @apiHeader {String} x-auth-token The token got from /api/auth/connect
+ *
+ * @apiDescription It will upload a file to the shared folder
+ * @apiParam {String} file The file via multipart/form-data
+ * @apiSuccess (Success) {Number} status 200
+ * @apiSuccess (Success) {String} body The filename on server
+ * @apiSuccessExample {string} Success-Response:
+ *      filename_1.ext
+ */
 router.post('/', (req, res) => {
     const sharedDirPath = getSharedPath();
     debug('SharedDirPath: ' + sharedDirPath);
@@ -85,7 +120,23 @@ router.post('/', (req, res) => {
         });
 })
 
-router.put('/path', (req, res) => {
+/**
+ * @api {put} /api/files/path 4. change the shared folder
+ * @apiGroup C.files
+ * @apiPermission admin
+ * @apiHeader {String} x-auth-token The token got from /api/auth/connect
+ *
+ * @apiDescription It will change the shared folder's path
+ * @apiParam {String} file The file via multipart/form-data
+ * @apiSuccess (Success) {Number} status 200
+ * @apiSuccess (Success) {String[]} body List of shared files
+ * @apiSuccessExample {json} Success-Response:
+ *          [
+ *              "file 1.ext",
+ *              "file 2.ext"
+ *          ]
+ */
+router.put('/path', admin, (req, res) => {
     debug('req.body: ', req.body);
 
     const newPath = req.body.path;

@@ -1,4 +1,4 @@
 {
     "name": "projectA server - in test mode",
-    "customConfig": ""
+    "jwtPrivateKey": "1234"
 }

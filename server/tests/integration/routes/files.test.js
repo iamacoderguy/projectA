@@ -1,3 +1,5 @@
+const endpoint = '/api/files';
+
 const each = require('jest-each').default;
 const request = require('supertest');
 const path = require('path');
@@ -12,7 +14,6 @@ const app = require('../../../startup/app');
 const { setSharedPath, getSharedPath } = require('../../../helpers/sharedPathHelper');
 const { tmpDirPath } = require('../../../helpers/sharedFileHelper');
 
-const endpoint = '/api/files';
 const validSharedPath = path.resolve(path.join(__dirname, 'fakePublicFolder'));
 const sharedFiles = [
     'demo.docx',
@@ -28,15 +29,37 @@ const sharedFiles = [
     'noExtensionFile',
 ]
 
+const clientIpAddr = '192.168.1.7';
+let token;
+
 describe(endpoint, () => {
+    const connectEndpoint = '/api/auth/connect';
+    const disconnectEndpoint = '/api/auth/disconnect';
+
     describe('GET /', () => {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+        });
+
+        function getFiles() {
+            return request(app)
+                .get(endpoint)
+                .set('x-forwarded-for', clientIpAddr)
+                .set('x-auth-token', token);
+        }
+
         describe('if the shared path is set', () => {
             beforeEach(() => { setSharedPath(validSharedPath); });
             afterEach(() => { setSharedPath(''); });
 
             it('should return 200', async () => {
                 // act
-                const res = await request(app).get(endpoint);
+                const res = await getFiles();
 
                 // assert
                 expect(res.status).toBe(200);
@@ -47,7 +70,7 @@ describe(endpoint, () => {
                 const expectedFiles = sharedFiles;
 
                 // act
-                const res = await request(app).get(endpoint);
+                const res = await getFiles();
 
                 // assert
                 expect(res.body.length).toBe(expectedFiles.length);
@@ -63,7 +86,7 @@ describe(endpoint, () => {
 
             it('should return 404', async () => {
                 // act
-                const res = await request(app).get(endpoint);
+                const res = await getFiles();
 
                 // assert
                 expect(res.status).toBe(404);
@@ -72,12 +95,23 @@ describe(endpoint, () => {
     })
 
     describe('GET /:filename', () => {
-        beforeEach(() => { setSharedPath(validSharedPath); });
-        afterEach(() => { setSharedPath(''); });
+        beforeEach(async () => {
+            setSharedPath(validSharedPath);
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+            setSharedPath('');
+        });
 
-        async function getFile(fname) {
+        function getFile(fname) {
             const url = endpoint + '/' + fname;
-            return await request(app).get(url);
+            return request(app)
+                .get(url)
+                .set('x-forwarded-for', clientIpAddr)
+                .set('x-auth-token', token);
         }
 
         it('should return 200 if valid filename is passed', async () => {
@@ -118,9 +152,21 @@ describe(endpoint, () => {
     })
 
     describe('GET ?filename=', () => {
-        async function getFile(fname) {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+        });
+
+        function getFile(fname) {
             const url = endpoint + '?filename=' + fname;
-            return await request(app).get(url);
+            return request(app)
+                .get(url)
+                .set('x-forwarded-for', clientIpAddr)
+                .set('x-auth-token', token);
         }
 
         it('should return 302', async () => {
@@ -148,9 +194,22 @@ describe(endpoint, () => {
     })
 
     describe('POST /', () => {
-        async function postFile(filename) {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', token);
+        });
+        
+        function postFile(filename) {
             const filePath = path.join(__dirname, 'postFiles', filename);
-            return await request(app).post(endpoint).attach('file', filePath);
+            return request(app)
+                .post(endpoint)
+                .attach('file', filePath)
+                .set('x-forwarded-for', clientIpAddr)
+                .set('x-auth-token', token);
         }
 
         const existedFile = 'fileExisted.mp3';
@@ -166,8 +225,8 @@ describe(endpoint, () => {
             beforeEach(() => { setSharedPath(validSharedPath); });
             afterEach(async () => {
                 setSharedPath('');
-                await unlinkPromise(path.join(validSharedPath, getNewName(existedFile))).catch(_ => {});
-                await unlinkPromise(path.join(validSharedPath, getNewName(notExistedFile))).catch(_ => {});
+                await unlinkPromise(path.join(validSharedPath, getNewName(existedFile))).catch(_ => { });
+                await unlinkPromise(path.join(validSharedPath, getNewName(notExistedFile))).catch(_ => { });
             });
 
             each([[existedFile], [notExistedFile]]).it('should return 200 in case file=%s', async (filename) => {
@@ -189,7 +248,7 @@ describe(endpoint, () => {
             it('should store the file if the file is not existed', async () => {
                 // arrange
                 const expectedNewFilePath = path.join(validSharedPath, getNewName(notExistedFile));
-                
+
                 // act
                 await postFile(notExistedFile);
 
@@ -200,7 +259,7 @@ describe(endpoint, () => {
             it('should store the file with a new name if the file is existed', async () => {
                 // arrange
                 const expectedNewFilePath = path.join(validSharedPath, getNewName(existedFile));
-                
+
                 // act
                 await postFile(existedFile);
 
@@ -242,14 +301,28 @@ describe(endpoint, () => {
     })
 
     describe('PUT /path', () => {
+        beforeEach(async () => {
+            const res = await request(app).post(connectEndpoint);
+            token = res.text;
+        });
+    
+        afterEach(async () => {
+            await request(app).post(disconnectEndpoint).set('x-auth-token', token);
+        });
+
+        function putPath(path) {
+            return request(app)
+                .put(endpoint + '/path')
+                .set('x-auth-token', token)
+                .send({ path: path });
+        }
+
         it('should return 200 if input is valid', async () => {
             // arrange
             setSharedPath('');
 
             // act
-            const res = await request(app)
-                                .put(endpoint + '/path')
-                                .send({ path: validSharedPath });
+            const res = await putPath(validSharedPath);
 
             // assert
             expect(res.status).toBe(200);
@@ -261,9 +334,7 @@ describe(endpoint, () => {
             const expectedFiles = sharedFiles;
 
             // act
-            const res = await request(app)
-                                .put(endpoint + '/path')
-                                .send({ path: validSharedPath });
+            const res = await putPath(validSharedPath);
 
             // assert
             expect(res.body.length).toBe(expectedFiles.length);
@@ -277,12 +348,10 @@ describe(endpoint, () => {
             setSharedPath('another-path');
 
             // act
-            const res = await request(app)
-                                .put(endpoint + '/path')
-                                .send({ path: validSharedPath });
-            const actualPath = getSharedPath();
+            await putPath(validSharedPath);
 
             // assert
+            const actualPath = getSharedPath();
             expect(actualPath).toBe(validSharedPath);
         })
 
@@ -291,9 +360,7 @@ describe(endpoint, () => {
             setSharedPath(validSharedPath);
 
             // act
-            const res = await request(app)
-                                .put(endpoint + '/path')
-                                .send({ path: 'invalid-path' });
+            const res = await putPath('invalid-path');;
 
             // assert
             expect(res.status).toBe(404);
