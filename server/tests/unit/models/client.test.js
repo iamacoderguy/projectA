@@ -1,19 +1,21 @@
+const waitForSetTimeout = require("wait-for-expect")
 const config = require('config');
 const jwt = require('jsonwebtoken');
 const { encrypt, decrypt } = require('../../../helpers/cryptoHelper');
 
-let Client = require('../../../models/client');
+const pinHelper = require('../../../helpers/pinHelper');
+const Client = require('../../../models/client');
+
+function getARandomPinCode() {
+    return Math.floor((Math.random() * 10000) + 1).toString();
+}
 
 describe('generateAuthToken', () => {
-    afterEach(() => jest.resetModules());
-
     it('should generate a correct jwt', () => {
         // arrange
-        const pinCode = '1234';
-        const pinHelper = require('../../../helpers/pinHelper');
+        const pinCode = getARandomPinCode();
         pinHelper.setPin(pinCode);
 
-        Client = require('../../../models/client');
         const ipAddr = "123.0.1.5";
         const client = new Client(ipAddr);
 
@@ -34,15 +36,11 @@ describe('generateAuthToken', () => {
 })
 
 describe('verifyToken', () => {
-    afterEach(() => jest.resetModules());
-
     it('should return null if the token is valid', () => {
         // arrange
-        const pinCode = '123457';
-        const pinHelper = require('../../../helpers/pinHelper');
+        const pinCode = getARandomPinCode();
         pinHelper.setPin(pinCode);
 
-        Client = require('../../../models/client');
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
         client.createNewSession();
@@ -57,17 +55,15 @@ describe('verifyToken', () => {
 
     it('should return IncorrectPasscodeError with message containing pin changed if the token is encrypted by incorrect pin', () => {
         // arrange
-        const pinCode = '123457';
-        const pinHelper = require('../../../helpers/pinHelper');
+        const pinCode = getARandomPinCode();
         pinHelper.setPin(pinCode);
 
-        Client = require('../../../models/client');
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
         client.createNewSession();
         const token = client.generateAuthToken();
 
-        const newPinCode = '123457478';
+        const newPinCode = getARandomPinCode();
         pinHelper.setPin(newPinCode);
 
         // act
@@ -81,11 +77,9 @@ describe('verifyToken', () => {
 
     it('should return IdMismatchedError if the token belongs to another client', () => {
         // arrange
-        const pinCode = '123457';
-        const pinHelper = require('../../../helpers/pinHelper');
+        const pinCode = getARandomPinCode();
         pinHelper.setPin(pinCode);
 
-        Client = require('../../../models/client');
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
         client.createNewSession();
@@ -105,11 +99,9 @@ describe('verifyToken', () => {
 
     it('should return DisconnectedError if the client is disconnected', () => {
         // arrange
-        const pinCode = '123457';
-        const pinHelper = require('../../../helpers/pinHelper');
+        const pinCode = getARandomPinCode();
         pinHelper.setPin(pinCode);
 
-        Client = require('../../../models/client');
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
         client.createNewSession();
@@ -123,30 +115,28 @@ describe('verifyToken', () => {
         expect(err.name).toBe('DisconnectedError');
     })
 
-    it('should return TokenExpiredError with message expCode expired if the expCode is out-of-date', () => {
+    it('should return TokenExpiredError with message expCode expired if the expCode is out-of-date', async () => {
         // arrange
-        const pinCode = '123457';
-        const pinHelper = require('../../../helpers/pinHelper');
+        const pinCode = getARandomPinCode();
         pinHelper.setPin(pinCode);
 
-        Client = require('../../../models/client');
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
         client.createNewSession();
         const token = client.generateAuthToken();
 
         // simulate that the session will be renew after 50 milliseconds
-        jest.useFakeTimers();
         setTimeout(() => {
             client.createNewSession();
         }, 50);
-        jest.runAllTimers()
 
-        // act
-        const err = client.verifyToken(token);
+        await waitForSetTimeout(() => {
+            // act
+            const err = client.verifyToken(token);
 
-        // assert
-        expect(err.name).toBe('TokenExpiredError');
+            // assert
+            expect(err.name).toBe('TokenExpiredError');
+        })
     })
 })
 

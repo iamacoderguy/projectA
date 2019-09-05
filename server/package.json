@@ -37,6 +37,7 @@
   "devDependencies": {
     "cross-env": "5.2.0",
     "jshint": "2.10.2",
-    "supertest": "4.0.2"
+    "supertest": "4.0.2",
+    "wait-for-expect": "2.0.0"
   }
 }

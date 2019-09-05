@@ -13,6 +13,7 @@ const readdirPromise = promisify(fs.readdir);
 const app = require('../../../startup/app');
 const { setSharedPath, getSharedPath } = require('../../../helpers/sharedPathHelper');
 const { tmpDirPath } = require('../../../helpers/sharedFileHelper');
+const pinHelper = require('../../../helpers/pinHelper');
 
 const validSharedPath = path.resolve(path.join(__dirname, 'fakePublicFolder'));
 const sharedFiles = [
@@ -38,7 +39,9 @@ describe(endpoint, () => {
 
     describe('GET /', () => {
         beforeEach(async () => {
-            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            const aRandomPin = Math.floor((Math.random() * 10000) + 1).toString();
+            pinHelper.setPin(aRandomPin);
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', aRandomPin);
             token = res.text;
         });
     
@@ -97,7 +100,9 @@ describe(endpoint, () => {
     describe('GET /:filename', () => {
         beforeEach(async () => {
             setSharedPath(validSharedPath);
-            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            const aRandomPin = Math.floor((Math.random() * 10000) + 1).toString();
+            pinHelper.setPin(aRandomPin);
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', aRandomPin);
             token = res.text;
         });
     
@@ -153,7 +158,9 @@ describe(endpoint, () => {
 
     describe('GET ?filename=', () => {
         beforeEach(async () => {
-            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            const aRandomPin = Math.floor((Math.random() * 10000) + 1).toString();
+            pinHelper.setPin(aRandomPin);
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', aRandomPin);
             token = res.text;
         });
     
@@ -195,7 +202,9 @@ describe(endpoint, () => {
 
     describe('POST /', () => {
         beforeEach(async () => {
-            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr);
+            const aRandomPin = Math.floor((Math.random() * 10000) + 1).toString();
+            pinHelper.setPin(aRandomPin);
+            const res = await request(app).post(connectEndpoint).set('x-forwarded-for', clientIpAddr).set('x-auth-token', aRandomPin);
             token = res.text;
         });
     
@@ -302,7 +311,9 @@ describe(endpoint, () => {
 
     describe('PUT /path', () => {
         beforeEach(async () => {
-            const res = await request(app).post(connectEndpoint);
+            const aRandomPin = Math.floor((Math.random() * 10000) + 1).toString();
+            pinHelper.setPin(aRandomPin);
+            const res = await request(app).post(connectEndpoint).set('x-auth-token', aRandomPin);
             token = res.text;
         });
     

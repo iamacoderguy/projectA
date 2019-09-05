@@ -127,7 +127,11 @@ router.post('/', (req, res) => {
  * @apiHeader {String} x-auth-token The token got from /api/auth/connect
  *
  * @apiDescription It will change the shared folder's path
- * @apiParam {String} file The file via multipart/form-data
+ * @apiParam {String} path The shared path
+ * @apiParamExample {json} Request-Example:
+ *          {
+ *              "path": "C:\\Users\\username\\Downloads"
+ *          }
  * @apiSuccess (Success) {Number} status 200
  * @apiSuccess (Success) {String[]} body List of shared files
  * @apiSuccessExample {json} Success-Response:
