@@ -19,7 +19,7 @@ Client.prototype.generateAuthToken = function () {
     );
 
     const pin = pinHelper.getPin();
-    const encryptedToken = encrypt(token, pin);
+    const encryptedToken = encrypt(token, pin.toString());
 
     return encryptedToken;
 }
@@ -27,7 +27,7 @@ Client.prototype.generateAuthToken = function () {
 Client.prototype.verifyToken = function (token) {
     try {
         const pin = pinHelper.getPin();
-        const decryptedToken = decrypt(token, pin);
+        const decryptedToken = decrypt(token, pin.toString());
         const decoded = jwt.verify(decryptedToken, secret);
 
         if (decoded.id !== this.id) {

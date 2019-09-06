@@ -1,20 +1,28 @@
 const endpoint = '/api/auth';
 
 const request = require('supertest');
-const app = require('../../../startup/app');
 
 const jwt = require('jsonwebtoken');
 const config = require('config');
-const authHelper = require('../../../helpers/authHelper');
-const db_Clients = require('../../../models/db_Clients');
-const pinHelper = require('../../../helpers/pinHelper');
 const { encrypt, decrypt } = require('../../../helpers/cryptoHelper');
 
-describe(endpoint, () => {
-    const connectEndpoint = endpoint + '/connect';
-    const disconnectEndpoint = endpoint + '/disconnect';
+const clientIpAddr = '192.168.1.7';
+const connectEndpoint = endpoint + '/connect';
+const disconnectEndpoint = endpoint + '/disconnect';
 
-    const clientIpAddr = '192.168.1.7';
+let app;
+let pinHelper, authHelper;
+
+describe(endpoint, () => {
+    beforeEach(async () => {
+        app = require('../../../startup/app');
+        pinHelper = require('../../../helpers/pinHelper');
+        authHelper = require('../../../helpers/authHelper');
+    });
+
+    afterEach(async () => {
+        jest.resetModules();
+    });
 
     function postDisconnect(ipAddr, token) {
         if (!token) token = '';
@@ -33,33 +41,23 @@ describe(endpoint, () => {
     }
 
     function postConnectWithDefaultPin(ipAddr) {
+        const pinCode = pinHelper.getPin();
+
         return request(app)
             .post(connectEndpoint)
             .set('x-forwarded-for', !ipAddr ? clientIpAddr : ipAddr)
             .set('x-auth-token', pinCode);
     }
 
-    function getARandomPin() {
-        return Math.floor((Math.random() * 10000) + 1).toString();
+    function getAnIncorrectRandomPin() {
+        return Math.floor(10000 + Math.random() * 90000);
     }
 
-    let pinCode = '';
-
-    beforeEach(() => {
-        pinCode = getARandomPin();
-        pinHelper.setPin(pinCode);
-    })
-
     describe('POST /connect', () => {
-        afterEach(() => {
-            db_Clients.reset();
-            jest.resetModules();
-        });
-
         describe('if the client is not connecting to server', () => {
             it('should return 400 if NOT providing correct pin', async () => {
                 // act
-                const pin = getARandomPin();
+                const pin = getAnIncorrectRandomPin();
                 const res = await postConnect(clientIpAddr, pin);
 
                 // assert
@@ -68,9 +66,8 @@ describe(endpoint, () => {
 
             it('should return 200 if providing correct pin', async () => {
                 // act
-                const pin = getARandomPin();
-                pinHelper.setPin(pin);
-                const res = await postConnect(clientIpAddr, pin);
+                const pinCode = pinHelper.getPin();
+                const res = await postConnect(clientIpAddr, pinCode);
 
                 // assert
                 expect(res.status).toBe(200);
@@ -78,13 +75,12 @@ describe(endpoint, () => {
 
             it('should return a valid jwt if providing correct pin', async () => {
                 // act
-                const pin = getARandomPin();
-                pinHelper.setPin(pin);
-                const res = await postConnect(clientIpAddr, pin);
+                const pinCode = pinHelper.getPin();
+                const res = await postConnect(clientIpAddr, pinCode);
 
                 // assert
                 const token = res.text;
-                const decryptedToken = decrypt(token, pin);
+                const decryptedToken = decrypt(token, pinCode.toString());
                 const decoded = jwt.verify(decryptedToken, config.get('jwtPrivateKey'));
 
                 expect(decoded).toMatchObject({

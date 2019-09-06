@@ -3,18 +3,14 @@ const config = require('config');
 const jwt = require('jsonwebtoken');
 const { encrypt, decrypt } = require('../../../helpers/cryptoHelper');
 
-const pinHelper = require('../../../helpers/pinHelper');
 const Client = require('../../../models/client');
-
-function getARandomPinCode() {
-    return Math.floor((Math.random() * 10000) + 1).toString();
-}
+const pinHelper = require('../../../helpers/pinHelper');
 
 describe('generateAuthToken', () => {
     it('should generate a correct jwt', () => {
         // arrange
-        const pinCode = getARandomPinCode();
-        pinHelper.setPin(pinCode);
+        pinHelper.initializeARandomPin();
+        const pinCode = pinHelper.getPin();
 
         const ipAddr = "123.0.1.5";
         const client = new Client(ipAddr);
@@ -24,7 +20,7 @@ describe('generateAuthToken', () => {
         const token = client.generateAuthToken();
 
         // assert
-        const decryptedToken = decrypt(token, pinCode);
+        const decryptedToken = decrypt(token, pinCode.toString());
         const decoded = jwt.verify(decryptedToken, config.get('jwtPrivateKey'));
         expect(decoded).toMatchObject({
             id: client.id,
@@ -38,8 +34,7 @@ describe('generateAuthToken', () => {
 describe('verifyToken', () => {
     it('should return null if the token is valid', () => {
         // arrange
-        const pinCode = getARandomPinCode();
-        pinHelper.setPin(pinCode);
+        pinHelper.initializeARandomPin();
 
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
@@ -55,16 +50,14 @@ describe('verifyToken', () => {
 
     it('should return IncorrectPasscodeError with message containing pin changed if the token is encrypted by incorrect pin', () => {
         // arrange
-        const pinCode = getARandomPinCode();
-        pinHelper.setPin(pinCode);
+        pinHelper.initializeARandomPin();
 
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
         client.createNewSession();
         const token = client.generateAuthToken();
 
-        const newPinCode = getARandomPinCode();
-        pinHelper.setPin(newPinCode);
+        pinHelper.initializeARandomPin();
 
         // act
         const err = client.verifyToken(token);
@@ -77,8 +70,7 @@ describe('verifyToken', () => {
 
     it('should return IdMismatchedError if the token belongs to another client', () => {
         // arrange
-        const pinCode = getARandomPinCode();
-        pinHelper.setPin(pinCode);
+        pinHelper.initializeARandomPin();
 
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
@@ -88,7 +80,7 @@ describe('verifyToken', () => {
         const anotherClient = new Client(anotherIpAddr);
         anotherClient.createNewSession();
         const anotherToken = anotherClient.generateAuthToken();
-        
+
 
         // act
         const err = client.verifyToken(anotherToken);
@@ -99,8 +91,7 @@ describe('verifyToken', () => {
 
     it('should return DisconnectedError if the client is disconnected', () => {
         // arrange
-        const pinCode = getARandomPinCode();
-        pinHelper.setPin(pinCode);
+        pinHelper.initializeARandomPin();
 
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);
@@ -117,8 +108,7 @@ describe('verifyToken', () => {
 
     it('should return TokenExpiredError with message expCode expired if the expCode is out-of-date', async () => {
         // arrange
-        const pinCode = getARandomPinCode();
-        pinHelper.setPin(pinCode);
+        pinHelper.initializeARandomPin();
 
         const ipAddr = "123.0.1.7";
         const client = new Client(ipAddr);

@@ -45,7 +45,7 @@ function refreshConnection(req, res, client) {
 
 function makeNewConnection(req, res, client) {
     const pin = req.header('x-auth-token');
-    if (pin === pinHelper.getPin()) {
+    if (pin == pinHelper.getPin()) {
         createNewSession(res, client);
     } else {
         res.status(400).send('wrong pin');
