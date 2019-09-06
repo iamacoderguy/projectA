@@ -292,15 +292,19 @@ describe(endpoint, () => {
         });
 
         describe('PUT /path', () => {
-            function putPath(path) {
+            function putPath(path, ipAddr) {
                 return request(app)
                     .put(endpoint + '/path')
-                    .set('x-forwarded-for', localhostIpAddr)
+                    .set('x-forwarded-for', !ipAddr ? localhostIpAddr : ipAddr)
                     .send({ path: path });
             }
 
-            it('should return 403 if the client is not an admin', () => {
-                throw new Error('not implemented, yet');
+            it('should return 403 if the client is not an admin', async () => {
+                // act
+                const res = await putPath(validSharedPath, clientIpAddr);
+
+                // assert
+                expect(res.status).toBe(403);
             })
 
             it('should return 200 if input is valid', async () => {
