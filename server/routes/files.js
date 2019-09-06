@@ -9,6 +9,7 @@ const { promisify } = require('util');
 const express = require('express');
 const router = express.Router();
 const admin = require('../middleware/admin');
+const auth = require('../middleware/auth');
 
 const { setSharedPath, getSharedPath } = require('../helpers/sharedPathHelper');
 const { getAvailableName, tmpDirPath } = require('../helpers/sharedFileHelper');
@@ -43,7 +44,7 @@ function handleErrorPath(err, res) {
  *              "file 2.ext"
  *          ]
  */
-router.get('/', (req, res) => {
+router.get('/', auth, (req, res) => {
     if (req.query.filename) {
         const urlWithoutQuery = url.parse(req.originalUrl).pathname;
         res.redirect(urlWithoutQuery + '/' + req.query.filename);
@@ -74,7 +75,7 @@ router.get('/', (req, res) => {
  * @apiSuccess (Success) {Number} status 200
  * @apiSuccess (Success) {file} body The shared file
  */
-router.get('/:filename', (req, res) => {
+router.get('/:filename', auth, (req, res) => {
     const sharedFilePath = path.join(getSharedPath(), req.params.filename);
     debug('SharedFilePath: ' + sharedFilePath);
 
@@ -96,7 +97,7 @@ router.get('/:filename', (req, res) => {
  * @apiSuccessExample {string} Success-Response:
  *      filename_1.ext
  */
-router.post('/', (req, res) => {
+router.post('/', auth, (req, res) => {
     const sharedDirPath = getSharedPath();
     debug('SharedDirPath: ' + sharedDirPath);
     debug('req.file: ', req.file);
@@ -124,7 +125,6 @@ router.post('/', (req, res) => {
  * @api {put} /api/files/path 4. change the shared folder
  * @apiGroup C.files
  * @apiPermission admin
- * @apiHeader {String} x-auth-token The token got from /api/auth/connect
  *
  * @apiDescription It will change the shared folder's path
  * @apiParam {String} path The shared path

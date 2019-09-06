@@ -286,17 +286,8 @@ describe(endpoint, () => {
             sharedPathHelper = require('../../../helpers/sharedPathHelper');
             setSharedPath = sharedPathHelper.setSharedPath;
             getSharedPath = sharedPathHelper.getSharedPath;
-
-            const pin = pinHelper.getPin();
-            const res = await request(app).post(connectEndpoint)
-                .set('x-forwarded-for', localhostIpAddr)
-                .set('x-auth-token', pin);
-            token = res.text;
         });
         afterEach(async () => {
-            await request(app).post(disconnectEndpoint)
-                .set('x-forwarded-for', localhostIpAddr)
-                .set('x-auth-token', token);
             jest.resetModules();
         });
 
@@ -305,9 +296,12 @@ describe(endpoint, () => {
                 return request(app)
                     .put(endpoint + '/path')
                     .set('x-forwarded-for', localhostIpAddr)
-                    .set('x-auth-token', token)
                     .send({ path: path });
             }
+
+            it('should return 403 if the client is not an admin', () => {
+                throw new Error('not implemented, yet');
+            })
 
             it('should return 200 if input is valid', async () => {
                 // act
