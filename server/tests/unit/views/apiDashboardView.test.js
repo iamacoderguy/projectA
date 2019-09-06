@@ -5,8 +5,8 @@ describe('apiDashboardView', () => {
     it('should render apiDashboardView correctly', () => {
         expect(renderPug('views/apiDashboardView.pug', {
             path: 'path-to-files',
-            dashboardName: 'dashboard-name',
-            ipAddress: 'ip-address',
+            dashboardName: 'Dashboard',
+            ipAddress: '127.3.2.1',
             port: 5000
           })).toMatchSnapshot();
     })
