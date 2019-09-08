@@ -1,147 +1,252 @@
 const endpoint = '/api/auth';
 
 const request = require('supertest');
-const app = require('../../../startup/app');
 
 const jwt = require('jsonwebtoken');
 const config = require('config');
-const authHelper = require('../../../helpers/authHelper');
-const db_Clients = require('../../../models/db_Clients');
+const { encrypt, decrypt } = require('../../../helpers/cryptoHelper');
+
+const clientIpAddr = '192.168.1.7';
+const localhostIpAddr = '::1';
+const connectEndpoint = endpoint + '/connect';
+const disconnectEndpoint = endpoint + '/disconnect';
+const pinEndpoint = endpoint + '/pin';
+
+let app;
+let pinHelper, authHelper, db_Clients;
 
 describe(endpoint, () => {
-    const connectEndpoint = endpoint + '/connect';
-    const disconnectEndpoint = endpoint + '/disconnect';
 
-    const clientIpAddr = '192.168.1.7';
+    describe('Permission: connected users', () => {
+        beforeEach(async () => {
+            app = require('../../../startup/app');
+            pinHelper = require('../../../helpers/pinHelper');
+            authHelper = require('../../../helpers/authHelper');
+        });
 
-    function postDisconnect(ipAddr, token) {
-        if (!token) token = '';
+        afterEach(async () => {
+            jest.resetModules();
+        });
 
-        return request(app)
-            .post(disconnectEndpoint)
-            .set('x-forwarded-for', !ipAddr ? clientIpAddr : ipAddr)
-            .set('x-auth-token', token);
-    }
+        function postDisconnect(ipAddr, token) {
+            if (!token) token = '';
 
-    function postConnect(ipAddr, token) {
-        if (!token) token = '';
+            return request(app)
+                .post(disconnectEndpoint)
+                .set('x-forwarded-for', !ipAddr ? clientIpAddr : ipAddr)
+                .set('x-auth-token', token);
+        }
 
-        return request(app)
-            .post(connectEndpoint)
-            .set('x-forwarded-for', !ipAddr ? clientIpAddr : ipAddr)
-            .set('x-auth-token', token);
-    }
+        function postConnect(ipAddr, tokenOrPin) {
+            return request(app)
+                .post(connectEndpoint)
+                .set('x-forwarded-for', !ipAddr ? clientIpAddr : ipAddr)
+                .set('x-auth-token', tokenOrPin);
+        }
 
-    describe('POST /connect', () => {
-        afterEach(() => db_Clients.reset());
+        function postConnectWithDefaultPin(ipAddr) {
+            const pinCode = pinHelper.getPin();
 
-        describe('if the client is not connecting to server', () => {
-            it('should return 200 without requiring token', async () => {
-                // act
-                const res = await postConnect();
+            return request(app)
+                .post(connectEndpoint)
+                .set('x-forwarded-for', !ipAddr ? clientIpAddr : ipAddr)
+                .set('x-auth-token', pinCode);
+        }
 
-                // assert
-                expect(res.status).toBe(200);
+        function getAnIncorrectRandomPin() {
+            return Math.floor(10000 + Math.random() * 90000);
+        }
+
+        describe('POST /connect', () => {
+            describe('if the client is not connecting to server', () => {
+                it('should return 400 if NOT providing correct pin', async () => {
+                    // act
+                    const pin = getAnIncorrectRandomPin();
+                    const res = await postConnect(clientIpAddr, pin);
+
+                    // assert
+                    expect(res.status).toBe(400);
+                })
+
+                it('should return 200 if providing correct pin', async () => {
+                    // act
+                    const pinCode = pinHelper.getPin();
+                    const res = await postConnect(clientIpAddr, pinCode);
+
+                    // assert
+                    expect(res.status).toBe(200);
+                })
+
+                it('should return a valid jwt if providing correct pin', async () => {
+                    // act
+                    const pinCode = pinHelper.getPin();
+                    const res = await postConnect(clientIpAddr, pinCode);
+
+                    // assert
+                    const token = res.text;
+                    const decryptedToken = decrypt(token, pinCode.toString());
+                    const decoded = jwt.verify(decryptedToken, config.get('jwtPrivateKey'));
+
+                    expect(decoded).toMatchObject({
+                        id: expect.any(String),
+                        isAdmin: expect.any(Boolean),
+                        expCode: expect.any(Number),
+                        exp: expect.any(Number)
+                    });
+                })
             })
 
-            it('should return a valid jwt without requiring token', async () => {
-                // act
-                const res = await postConnect();
+            describe('if the client is connecting to server', () => {
+                it('should return 401 if NOT providing valid token', async () => {
+                    // arrange
+                    let res = await postConnectWithDefaultPin(clientIpAddr);
 
-                // assert
-                const token = res.text;
-                const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
+                    // act
+                    res = await postConnect(clientIpAddr, '');
 
-                expect(decoded).toMatchObject({
-                    id: expect.any(String),
-                    isAdmin: expect.any(Boolean),
-                    expCode: expect.any(Number),
-                    exp: expect.any(Number)
-                });
+                    // assert
+                    expect(res.status).toBe(401);
+                })
+
+                it('should return 200 if providing valid token', async () => {
+                    // arrange
+                    let res = await postConnectWithDefaultPin(clientIpAddr);
+                    let token = res.text;
+
+                    // act
+                    res = await postConnect(clientIpAddr, token);
+
+                    // assert
+                    expect(res.status).toBe(200);
+                })
+
+                it('should disable previous jwts of the client if providing valid token', async () => {
+                    // arrange
+                    let res = await postConnectWithDefaultPin(clientIpAddr);
+                    const previousToken = res.text;
+
+                    // act
+                    res = await postConnect(clientIpAddr, previousToken);
+                    const currentToken = res.text;
+
+                    // assert
+                    const previousErr = authHelper.verify(clientIpAddr, previousToken);
+                    const currentErr = authHelper.verify(clientIpAddr, currentToken);
+
+                    expect(previousErr.name).toBe('TokenExpiredError');
+                    expect(currentErr).toBeNull();
+                })
             })
         })
 
-        describe('if the client is connecting to server', () => {
-            it('should return 401 if providing invalid token', async () => {
+        describe('POST /disconnect', () => {
+            it('should return 401 if using another client\'s token', async () => {
                 // arrange
-                let res = await postConnect(clientIpAddr);
+                const otherClientIpAddr = "111.222.1.3";
+                let res = await postConnectWithDefaultPin(otherClientIpAddr);
+                const token = res.text;
 
                 // act
-                res = await postConnect(clientIpAddr);
+                res = await postDisconnect(clientIpAddr, token);
 
                 // assert
                 expect(res.status).toBe(401);
             })
 
-            it('should return 200 if providing valid token', async () => {
+            it('should return 200 if using current client\'s token', async () => {
                 // arrange
-                let res = await postConnect(clientIpAddr);
-                let token = res.text;
+                let res = await postConnectWithDefaultPin(clientIpAddr);
+                const token = res.text;
 
                 // act
-                res = await postConnect(clientIpAddr, token);
+                res = await postDisconnect(clientIpAddr, token);
 
                 // assert
                 expect(res.status).toBe(200);
             })
 
-            it('should disable previous jwts of the client if providing valid token', async () => {
+            it('should disable all jwt of the client if using the client\'s token', async () => {
                 // arrange
-                let res = await postConnect(clientIpAddr);
+                let res = await postConnectWithDefaultPin(clientIpAddr);
                 const previousToken = res.text;
 
                 // act
-                res = await postConnect(clientIpAddr, previousToken);
-                const currentToken = res.text;
+                await postDisconnect(clientIpAddr, previousToken);
 
                 // assert
                 const previousErr = authHelper.verify(clientIpAddr, previousToken);
-                const currentErr = authHelper.verify(clientIpAddr, currentToken);
-
-                expect(previousErr.name).toBe('TokenExpiredError');
-                expect(currentErr).toBeNull();
+                expect(previousErr.name).toBe('DisconnectedError');
             })
         })
     })
 
-    describe('POST /disconnect', () => {
+    describe('Permission: admin', () => {
+        beforeEach(() => {
+            app = require('../../../startup/app');
+            pinHelper = require('../../../helpers/pinHelper');
+            db_Clients = require('../../../models/db_Clients');
+        });
 
-        it('should return 401 if using another client\'s token', async () => {
-            // arrange
-            const otherClientIpAddr = "111.222.1.3";
-            let res = await postConnect(otherClientIpAddr);
-            const token = res.text;
+        afterEach(() => {
+            jest.resetModules();
+        });
 
-            // act
-            res = await postDisconnect(clientIpAddr, token);
+        function putPin(newPin, ipAddr) {
+            return request(app)
+                .put(pinEndpoint)
+                .set('x-forwarded-for', !ipAddr ? localhostIpAddr : ipAddr)
+                .send({ pin: newPin });
+        }
 
-            // assert
-            expect(res.status).toBe(401);
-        })
+        function postConnect(ipAddr, tokenOrPin) {
+            return request(app)
+                .post(connectEndpoint)
+                .set('x-forwarded-for', !ipAddr ? localhostIpAddr : ipAddr)
+                .set('x-auth-token', tokenOrPin);
+        }
 
-        it('should return 200 if using current client\'s token', async () => {
-            // arrange
-            let res = await postConnect(clientIpAddr);
-            const token = res.text;
+        describe('PUT /pin', () => {
+            it('should return 403 if the client is not an admin', async () => {
+                // arrange
+                const newPin = 12345;
 
-            // act
-            res = await postDisconnect(clientIpAddr, token);
+                // act
+                const res = await putPin(newPin, clientIpAddr);
 
-            // assert
-            expect(res.status).toBe(200);
-        })
+                // assert
+                expect(res.status).toBe(403);
+            })
 
-        it('should disable all jwt of the client if using the client\'s token', async () => {
-            // arrange
-            let res = await postConnect(clientIpAddr);
-            const previousToken = res.text;
+            it('should change current server pin code', async () => {
+                // arrange
+                const expectedPin = 12345;
 
-            // act
-            await postDisconnect(clientIpAddr, previousToken);
+                // act
+                const res = await putPin(expectedPin);
 
-            // assert
-            const previousErr = authHelper.verify(clientIpAddr, previousToken);
-            expect(previousErr.name).toBe('DisconnectedError');
+                // assert
+                expect(res.status).toBe(200);
+
+                const actualPin = pinHelper.getPin();
+                expect(actualPin).toBe(expectedPin);
+            })
+
+            it('should disable all previous tokens', async () => {
+                // arrange
+                const initPin = pinHelper.getPin();
+                let res = postConnect(localhostIpAddr, initPin);
+                const token = res.text;
+                const client = db_Clients.getClient(localhostIpAddr);
+
+                // act
+                const newPin = '654978';
+                res = await putPin(newPin, localhostIpAddr);
+
+                // assert
+                expect(res.status).toBe(200);
+                const err = client.verifyToken(token);
+                expect(err).toBeTruthy();
+            })
         })
     })
 })

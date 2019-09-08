@@ -38,6 +38,9 @@ describe('/', () => {
                 const client3 = new Client('111.222.333.666');
                 client1.expCode = 0; client2.expCode = NaN; client3.expCode = 2;
                 db_Clients.getClients = jest.fn().mockReturnValue([client1, client2, client3]);
+
+                const pinHelper = require('../../../helpers/pinHelper');
+                pinHelper.setPin('8694');
     
                 // act
                 const res = await request(app).get('/').set('x-forwarded-for', ipAddr);

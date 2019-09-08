@@ -13,11 +13,31 @@ html(lang="en-US")
             p
                 iframe(width='100%' height='200vw' title='Result box' srcdoc='<i>Result...</i>' name='iframe_result')
 
+            form.w3-container(method='POST' action='/api/auth/pin?_method=PUT' target='iframe_result')
+                p
+                    label.w3-text-dark-teal(for="pinInput")
+                        b Set a new pin (/api/auth/pin)
+                    input.w3-input.w3-border.w3-round.w3-animate-input(id='pinInput' style="width:30%" name='pin' type='password' placeholder='pin code' value=pin)
+                p 
+                    input.w3-check(id='showPasswordInput' type="checkbox" onclick="tooglePasswordVisibility()")
+                    script.
+                        function tooglePasswordVisibility() {
+                            var x = document.getElementById("pinInput");
+                            if (x.type === "password") {
+                                x.type = "text";
+                            } else {
+                                x.type = "password";
+                            }
+                        }
+                    label(for="showPasswordInput") &nbsp;Show password
+                p
+                    button.w3-btn.w3-dark-teal(type='submit') PUT
+
             form.w3-container(method='POST' action='/api/files/path?_method=PUT' target='iframe_result')
                 p
                     label.w3-text-dark-teal(for="sharedPathInput")
                         b Set a new shared path (/api/files/path)
-                    input.w3-input.w3-border.w3-round(id='sharedPathInput' name='path' type='text' placeholder='path-to-files' value=path)
+                    input.w3-input.w3-border.w3-round.w3-animate-input(id='sharedPathInput' style="width:30%" name='path' type='text' placeholder='path-to-files' value=path)
                 p
                     button.w3-btn.w3-dark-teal(type='submit') PUT
 
