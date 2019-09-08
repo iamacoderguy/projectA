@@ -8,9 +8,9 @@ projectA is the first one of 26 projects from A to Z that I intend to develop on
 
 projectA will last in one month from Aug 10 to Sep 10. Hope that it can contain basic knowledge of full-stack system development including front-end, back-end, and DevOps.
 
-Team project owner | Project status: Active / Inactive / Shipped
------------------- | -------------------------------------------
-@iamacoderguy      | Active
+Team project owner |
+------------------ |
+@iamacoderguy      |
 
 Team members  | Project status: Active / Inactive / Shipped
 ------------- | -------------------------------------------
@@ -27,7 +27,7 @@ IMPACT OF THIS PROBLEM: I have two years' experience of mobile development in Xa
 
 ### How do we judge success?
 The project will be finished if:
-- [ ] I finish developing a system which involves a server (back-end) and one or more clients (front-end)
+- [ ] We finish developing a system which involves a server (back-end) and one or more clients (front-end)
 - [x] The system can run, do one or more useful tasks and everyone can use it with some configurations
 - [x] The system doesn't need to run online, on-cloud. It can use a LAN.
 - [x] No master how many features the system has.
@@ -44,15 +44,15 @@ I've chosen the last one. So we're implementing a system that enables end-users 
 
 ## Validation
 ### What we already know?
-I will choose frameworks to implement the solution based on the roadmap at https://github.com/kamranahmedse/developer-roadmap (maybe JS related frameworks).
-I take ownership of defining of done.
+We will choose frameworks to implement the solution based on the roadmap at https://github.com/kamranahmedse/developer-roadmap (maybe JS related frameworks).
+We take ownership of defining of done.
 
 ### What do we need to answer?
 No, just do it, then we will explore.
 
 ## Ready to make it
 ### <a name="wawd"></a>What are we doing?
-I will deliver a solution including:
+The project will deliver a solution including:
 1. Client applications:
    * A mobile application (Android or iOS or both)
    * A desktop application (desktop or web app or both)
