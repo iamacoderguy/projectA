@@ -26,7 +26,8 @@ describe('adminDashboardView', () => {
             dashboardName: 'Dashboard',
             ipAddress: '192.168.1.1',
             port: 5000,
-            clients: clients
+            clients: clients,
+            pin: 123456
           })).toMatchSnapshot();
     })
 })
