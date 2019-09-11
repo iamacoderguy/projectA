@@ -14,8 +14,7 @@ function Client(ipAddr) {
 Client.prototype.generateAuthToken = function () {
     const token = jwt.sign(
         JSON.parse(JSON.stringify(this)),
-        secret,
-        { expiresIn: '15m' }
+        secret
     );
 
     const pin = pinHelper.getPin();
@@ -42,15 +41,22 @@ Client.prototype.verifyToken = function (token) {
             return {
                 name: 'DisconnectedError',
                 message: 'client disconnected',
-                details: { expected: 'connected', actual: 'disconnected' }
+                details: { expected: 'connecting', actual: 'disconnected' }
             }
         }
 
         if (decoded.expCode !== this.expCode) {
             return {
-                name: 'TokenExpiredError',
-                message: 'expCode expired',
+                name: 'TokenOutOfDateError',
+                message: 'Your token is out-of-date. Please use the latest token.',
                 details: { expected: this.expCode, actual: decoded.expCode }
+            }
+        }
+
+        if (decoded.expCode < Date.now()) {
+            return {
+                name: 'ConnectionExpiredError',
+                message: 'Your connection is expired. Please make a new connection.'
             }
         }
 
@@ -66,8 +72,8 @@ Client.prototype.verifyToken = function (token) {
     }
 }
 
-Client.prototype.createNewSession = function() {
-    this.expCode = Date.now();
+Client.prototype.createNewSession = function(expiresInMilliseconds) {
+    this.expCode = !expiresInMilliseconds ? (Date.now() + 15*60*1000) : (Date.now() + expiresInMilliseconds);
 }
 
 Client.prototype.cleanAllSessions = function() {
@@ -79,7 +85,15 @@ Client.prototype.getIpAddr = function() {
 }
 
 Client.prototype.getStatus = function() {
-    return Object.is(this.expCode, NaN) ? "disconnected" : "connecting";
+    if (Object.is(this.expCode, NaN)) {
+        return 'disconnected';
+    }
+    
+    if (this.expCode < Date.now()) {
+        return 'expired';
+    }
+    
+    return 'connecting';
 }
 
 module.exports = Client;

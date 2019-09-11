@@ -36,7 +36,7 @@ describe('/', () => {
                 const client1 = new Client('111.222.333.444');
                 const client2 = new Client('111.222.333.555');
                 const client3 = new Client('111.222.333.666');
-                client1.expCode = 0; client2.expCode = NaN; client3.expCode = 2;
+                client1.expCode = Date.now() + 15*60*1000; client2.expCode = NaN; client3.expCode = 0;
                 db_Clients.getClients = jest.fn().mockReturnValue([client1, client2, client3]);
 
                 const pinHelper = require('../../../helpers/pinHelper');
