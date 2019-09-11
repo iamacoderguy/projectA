@@ -104,7 +104,7 @@ describe(endpoint, () => {
         })
 
         describe('GET /:filename', () => {
-            beforeEach(async () => setSharedPath(validSharedPath));
+            beforeEach(() => setSharedPath(validSharedPath));
 
             function getFile(fname) {
                 const url = endpoint + '/' + fname;
@@ -280,14 +280,14 @@ describe(endpoint, () => {
     })
 
     describe('Permission: admin', () => {
-        beforeEach(async () => {
+        beforeEach(() => {
             app = require('../../../startup/app');
             pinHelper = require('../../../helpers/pinHelper');
             sharedPathHelper = require('../../../helpers/sharedPathHelper');
             setSharedPath = sharedPathHelper.setSharedPath;
             getSharedPath = sharedPathHelper.getSharedPath;
         });
-        afterEach(async () => {
+        afterEach(() => {
             jest.resetModules();
         });
 

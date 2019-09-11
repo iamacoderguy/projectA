@@ -234,7 +234,7 @@ describe(endpoint, () => {
             it('should disable all previous tokens', async () => {
                 // arrange
                 const initPin = pinHelper.getPin();
-                let res = postConnect(localhostIpAddr, initPin);
+                let res = await postConnect(localhostIpAddr, initPin);
                 const token = res.text;
                 const client = db_Clients.getClient(localhostIpAddr);
 
@@ -246,6 +246,37 @@ describe(endpoint, () => {
                 expect(res.status).toBe(200);
                 const err = client.verifyToken(token);
                 expect(err).toBeTruthy();
+            })
+
+            it('should disconnect all clients', async () => {
+                // arrange
+                const initPin = pinHelper.getPin();
+                let res = await postConnect(localhostIpAddr, initPin);
+                const client = db_Clients.getClient(localhostIpAddr);
+
+                // act
+                const newPin = '654978';
+                res = await putPin(newPin, localhostIpAddr);
+
+                // assert
+                expect(res.status).toBe(200);
+                const status = client.getStatus();
+                expect(status).toBe("disconnected");
+            })
+
+            it('should allow clients to make a new connection', async () => {
+                // arrange
+                const initPin = pinHelper.getPin();
+                let res = await postConnect(localhostIpAddr, initPin);
+
+                // act
+                const newPin = '654978';
+                res = await putPin(newPin, localhostIpAddr);
+
+                // assert
+                expect(res.status).toBe(200);
+                res = await postConnect(localhostIpAddr, newPin);
+                expect(res.status).toBe(200);
             })
         })
     })
