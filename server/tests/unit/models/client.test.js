@@ -1,3 +1,4 @@
+const each = require('jest-each').default;
 const waitForSetTimeout = require("wait-for-expect")
 const config = require('config');
 const jwt = require('jsonwebtoken');
@@ -25,8 +26,7 @@ describe('generateAuthToken', () => {
         expect(decoded).toMatchObject({
             id: client.id,
             isAdmin: client.isAdmin,
-            expCode: expect.any(Number),
-            exp: expect.any(Number)
+            expCode: expect.any(Number)
         });
     })
 })
@@ -106,7 +106,7 @@ describe('verifyToken', () => {
         expect(err.name).toBe('DisconnectedError');
     })
 
-    it('should return TokenExpiredError with message expCode expired if the expCode is out-of-date', async () => {
+    it('should return TokenOutOfDateError with message advise users to use the latest token if token contains an old expCode', async () => {
         // arrange
         pinHelper.initializeARandomPin();
 
@@ -125,32 +125,72 @@ describe('verifyToken', () => {
             const err = client.verifyToken(token);
 
             // assert
-            expect(err.name).toBe('TokenExpiredError');
+            expect(err.name).toBe('TokenOutOfDateError');
+            expect(err.message).toMatch(/use/);
+            expect(err.message).toMatch(/latest token/);
+        })
+    })
+
+    it('should return TokenExpiredError with message advise users to make a new connection if the latest expCode is expired', async () => {
+        // arrange
+        pinHelper.initializeARandomPin();
+
+        const ipAddr = "123.0.1.7";
+        const client = new Client(ipAddr);
+        client.createNewSession(100);
+        const token = client.generateAuthToken();
+
+        // wait until the session is expired
+        setTimeout(() => {}, 150);
+
+        await waitForSetTimeout(() => {
+            // act
+            const err = client.verifyToken(token);
+
+            // assert
+            expect(err.name).toBe('ConnectionExpiredError');
+            expect(err.message).toMatch(/new connection/);
         })
     })
 })
 
 describe('createNewSession', () => {
-    it('should change expCode to current moment', () => {
+    it('should change expCode to 15 minutes if NO expiration specified', () => {
         // arrange
         const now = Date.now();
-        const expectedIpAddr = "123.5.1.5";
-        const client = new Client(expectedIpAddr);
+        const expectedTime = now + 15*60*1000;
+        const ipAddr = "123.5.1.5";
+        const client = new Client(ipAddr);
 
         // act
         client.createNewSession();
 
         // assert
         expect(typeof client.expCode).toBe("number");
-        expect(client.expCode).toBeGreaterThanOrEqual(now);
+        expect(client.expCode).toBeGreaterThanOrEqual(expectedTime);
+    })
+
+    each([[15], [5], [20]]).it('should change expCode to %d minutes if the expiration specified as %d minutes', (expirationInMinutes) => {
+        // arrange
+        const now = Date.now();
+        const expirationInMilliseconds = expirationInMinutes*60*1000;
+        const ipAddr = "123.5.1.5";
+        const client = new Client(ipAddr);
+
+        // act
+        client.createNewSession(expirationInMilliseconds);
+
+        // assert
+        expect(typeof client.expCode).toBe("number");
+        expect(client.expCode).toBeGreaterThanOrEqual(now + expirationInMilliseconds);
     })
 })
 
 describe('cleanAllSessions', () => {
     it('should change expCode to NaN', () => {
         // arrange
-        const expectedIpAddr = "123.5.1.5";
-        const client = new Client(expectedIpAddr);
+        const ipAddr = "123.5.1.5";
+        const client = new Client(ipAddr);
         client.createNewSession();
 
         // act
@@ -213,5 +253,22 @@ describe('getStatus', () => {
 
         // assert
         expect(status).toBe('connecting');
+    })
+
+    it('should return expired if current active session is expired', () => {
+        // arrange
+        const now = Date.now();
+        const expectedIpAddr = "123.5.1.5";
+        const client = new Client(expectedIpAddr);
+        client.createNewSession();
+        
+        // change time to 20 minutes in the future
+        jest.spyOn(global.Date, 'now').mockImplementationOnce(() => now + 20*60*1000);
+
+        // act
+        const status = client.getStatus();
+
+        // assert
+        expect(status).toBe('expired');
     })
 })

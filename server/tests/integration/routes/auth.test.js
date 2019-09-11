@@ -90,8 +90,7 @@ describe(endpoint, () => {
                     expect(decoded).toMatchObject({
                         id: expect.any(String),
                         isAdmin: expect.any(Boolean),
-                        expCode: expect.any(Number),
-                        exp: expect.any(Number)
+                        expCode: expect.any(Number)
                     });
                 })
             })
@@ -133,8 +132,66 @@ describe(endpoint, () => {
                     const previousErr = authHelper.verify(clientIpAddr, previousToken);
                     const currentErr = authHelper.verify(clientIpAddr, currentToken);
 
-                    expect(previousErr.name).toBe('TokenExpiredError');
+                    expect(previousErr.name).toBe('TokenOutOfDateError');
                     expect(currentErr).toBeNull();
+                })
+            })
+
+            describe('if the connection is expired', () => {
+                it('should return 400 if NOT providing correct pin', async () => {
+                    // arrange
+                    const now = Date.now();
+                    await postConnectWithDefaultPin(clientIpAddr);
+
+                    // change time to 20 minutes in the future
+                    jest.spyOn(global.Date, 'now').mockImplementationOnce(() => now + 20*60*1000);
+
+                    // act
+                    const pin = getAnIncorrectRandomPin();
+                    const res = await postConnect(clientIpAddr, pin);
+
+                    // assert
+                    expect(res.status).toBe(400);
+                })
+
+                it('should return 200 if providing correct pin', async () => {
+                    // arrange
+                    const now = Date.now();
+                    await postConnectWithDefaultPin(clientIpAddr);
+
+                    // change time to 20 minutes in the future
+                    jest.spyOn(global.Date, 'now').mockImplementationOnce(() => now + 20*60*1000);
+
+                    // act
+                    const pinCode = pinHelper.getPin();
+                    const res = await postConnect(clientIpAddr, pinCode);
+
+                    // assert
+                    expect(res.status).toBe(200);
+                })
+
+                it('should return a valid jwt if providing correct pin', async () => {
+                    // arrange
+                    const now = Date.now();
+                    await postConnectWithDefaultPin(clientIpAddr);
+
+                    // change time to 20 minutes in the future
+                    jest.spyOn(global.Date, 'now').mockImplementationOnce(() => now + 20*60*1000);
+
+                    // act
+                    const pinCode = pinHelper.getPin();
+                    const res = await postConnect(clientIpAddr, pinCode);
+
+                    // assert
+                    const token = res.text;
+                    const decryptedToken = decrypt(token, pinCode.toString());
+                    const decoded = jwt.verify(decryptedToken, config.get('jwtPrivateKey'));
+
+                    expect(decoded).toMatchObject({
+                        id: expect.any(String),
+                        isAdmin: expect.any(Boolean),
+                        expCode: expect.any(Number)
+                    });
                 })
             })
         })

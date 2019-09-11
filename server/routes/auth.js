@@ -25,8 +25,9 @@ const pinHelper = require('../helpers/pinHelper');
 router.post('/connect', (req, res) => {
     const ipAddr = networkHelper.getIpAddressFromReq(req);
     const client = db_Clients.getClient(ipAddr);
+    const status = client.getStatus();
 
-    if (client.getStatus() === 'disconnected') {
+    if (status === 'disconnected' || status === 'expired') {
         makeNewConnection(req, res, client);
     } else {
         refreshConnection(req, res, client);
@@ -85,13 +86,6 @@ router.post('/disconnect', auth, (req, res) => {
  * @apiSuccess (Success) {Number} status 200
  */
 
- function disconnectAllClients() {
-    const clients = db_Clients.getClients();
-    clients.forEach(client => {
-        client.cleanAllSessions();
-    });
- }
-
 router.put('/pin', admin, (req, res) => {
     debug('req.body: ', req.body);
 
@@ -107,5 +101,12 @@ router.put('/pin', admin, (req, res) => {
 
     res.status(200).send();
 })
+
+function disconnectAllClients() {
+    const clients = db_Clients.getClients();
+    clients.forEach(client => {
+        client.cleanAllSessions();
+    });
+}
 
 module.exports = router;
