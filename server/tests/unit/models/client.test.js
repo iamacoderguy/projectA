@@ -170,7 +170,7 @@ describe('createNewSession', () => {
         expect(client.expCode).toBeGreaterThanOrEqual(expectedTime);
     })
 
-    each([[15], [5], [20]]).it('should change expCode to %d minutes if the expiration specified as %d minutes', (expirationInMinutes) => {
+    each([[15, 15], [5, 5], [20, 20]]).it('should change expCode to %d minutes if the expiration specified as %d minutes', (expirationInMinutes) => {
         // arrange
         const now = Date.now();
         const expirationInMilliseconds = expirationInMinutes*60*1000;
