@@ -51,7 +51,7 @@
         ]
       }
     },
-    "description": "<p>It will (make a new / refresh current) connection between the client and the server</p>",
+    "description": "<p>It will (make a new / refresh current) connection between the client and the server. A connection will be expired in 15 minutes. You have to make a new connection when your connection expired.</p>",
     "success": {
       "fields": {
         "Success": [
