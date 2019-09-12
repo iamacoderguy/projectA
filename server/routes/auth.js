@@ -15,7 +15,8 @@ const pinHelper = require('../helpers/pinHelper');
  * @apiPermission none (for making new connect) || connected users (for refreshing the connection)
  * @apiHeader {String} x-auth-token Connection PIN when making a new connection || The token got from /api/auth/connect when refreshing the connection.
  *
- * @apiDescription It will (make a new / refresh current) connection between the client and the server
+ * @apiDescription It will (make a new / refresh current) connection between the client and the server.
+ * A connection will be expired in 15 minutes. You have to make a new connection when your connection expired.
  * @apiSuccess (Success) {Number} status 200
  * @apiSuccess (Success) {String} body The token
  * @apiSuccessExample {string} Success-Response:
