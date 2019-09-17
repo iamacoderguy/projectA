@@ -1,6 +1,6 @@
 const each = require('jest-each').default;
 const os = require('os');
-const { getServerIpAddress, isFromLocalhost } = require('../../../helpers/networkHelper');
+const { getServerIpAddress, isFromLocalhost, getIpAddressFromReq } = require('../../../helpers/networkHelper');
 
 describe('getIpAddress', () => {
     it('should return the first external IPv4 address if there is no Ethernet', () => {
@@ -144,4 +144,29 @@ describe('isFromLocalhost', () => {
         // assert
         expect(result).toBe(false);
     })
+})
+
+describe('getIpAddressFromReq', () => {
+  each([['::ffff:192.168.1.169'], ['::1'], ['::ffff:127.0.0.1']])
+  .it('should return ip address from request.headers[\'x-forwarded-for\'] if it is %s', (xForwarder) => {
+    // arrange
+    const req = {};
+    req.headers = { 'x-forwarded-for': xForwarder };
+    const expectedResult = xForwarder;
+
+    // act
+    const actualResult = getIpAddressFromReq(req);
+
+    // assert
+    expect(actualResult).toBe(expectedResult);
+  })
+
+  it('should return ip address from request.connection.remoteAddress if no x-forwarded-for field from headers', () => {
+    // arrange
+
+    // act
+
+    // assert
+    expect('not implemented, yet').toBe('implemented');
+  })
 })
