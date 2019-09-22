@@ -5,8 +5,7 @@ import { connectServer } from '../api/requestAPI';
 
 function* connectRequest(params) {
   try {
-    const response = yield call(connectServer(params.payload.params));
-    console.log('response', response);
+    const response = yield call(connectServer, params.payload.params);
 
     if (response.ok) {
       yield put({ type: CONNECT_SUCCESS, response });
@@ -14,7 +13,6 @@ function* connectRequest(params) {
       yield put({ type: CONNECT_FAILURE, response });
     }
   } catch (error) {
-    console.log('saga error', error);
     yield put({ type: CONNECT_FAILURE, error });
   }
 }

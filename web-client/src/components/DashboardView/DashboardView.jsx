@@ -1,9 +1,8 @@
-import React, { Component } from "react";
-import InputtingForm from "./InputtingForm";
-import "./DashboardViewStyle.css";
+import React, { Component } from 'react';
+import InputtingForm from './InputtingForm';
+import './DashboardViewStyle.css';
 
 class DashboardView extends Component {
-
   render() {
     return (
       <div>

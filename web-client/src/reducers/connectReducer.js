@@ -20,7 +20,6 @@ export default function connectReducer(state = initState, action) {
       });
 
     case CONNECT_FAILURE:
-      console.log('action', action.error);
       return Object.assign({}, state, {
         loading: false,
         error: action.response,

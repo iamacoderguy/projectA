@@ -7,9 +7,9 @@ import {
 
 import { putPath } from '../api/requestAPI';
 
-function* putPathRequest() {
+function* putPathRequest(params) {
   try {
-    const response = yield call(putPath);
+    const response = yield call(putPath, params.payload.params);
 
     if (response.ok) {
       yield put({ type: PUT_PATH_SUCCESS, response });
