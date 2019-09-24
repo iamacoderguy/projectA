@@ -183,13 +183,7 @@ describe('getIpAddressFromReq', () => {
         .it('should return ip address from request.headers[\'x-forwarded-for\'] if it is %s', (xForwarder) => {
             // arrange
             const req = {};
-            req.headers = {
-                host: '127.0.0.1:57933',
-                'accept-encoding': 'gzip, deflate',
-                'user-agent': 'node-superagent/3.8.3',
-                'x-forwarded-for': xForwarder,
-                connection: 'close'
-            };
+            req.headers = { 'x-forwarded-for': xForwarder };
             const expectedResult = xForwarder;
 
             // act
