@@ -7,34 +7,44 @@ describe('getIpAddress', () => {
         // arrange
         const expectedAddress = '192.168.6.244';
         os.networkInterfaces = jest.fn(() => {
-            return { 'Wi-Fi 3':
-            [ { address: 'fe80::3cb8:d8da:db0c:8294',
-                netmask: 'ffff:ffff:ffff:ffff::',
-                family: 'IPv6',
-                mac: 'd4:6e:0e:03:00:58',
-                scopeid: 12,
-                internal: false,
-                cidr: 'fe80::3cb8:d8da:db0c:8294/64' },
-              { address: expectedAddress,
-                netmask: '255.255.255.0',
-                family: 'IPv4',
-                mac: 'd4:6e:0e:03:00:58',
-                internal: false,
-                cidr: expectedAddress + '/24' } ],
-           'Loopback Pseudo-Interface 1':
-            [ { address: '::1',
-                netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
-                family: 'IPv6',
-                mac: '00:00:00:00:00:00',
-                scopeid: 0,
-                internal: true,
-                cidr: '::1/128' },
-              { address: '127.0.0.1',
-                netmask: '255.0.0.0',
-                family: 'IPv4',
-                mac: '00:00:00:00:00:00',
-                internal: true,
-                cidr: '127.0.0.1/8' } ] };
+            return {
+                'Wi-Fi 3':
+                    [{
+                        address: 'fe80::3cb8:d8da:db0c:8294',
+                        netmask: 'ffff:ffff:ffff:ffff::',
+                        family: 'IPv6',
+                        mac: 'd4:6e:0e:03:00:58',
+                        scopeid: 12,
+                        internal: false,
+                        cidr: 'fe80::3cb8:d8da:db0c:8294/64'
+                    },
+                    {
+                        address: expectedAddress,
+                        netmask: '255.255.255.0',
+                        family: 'IPv4',
+                        mac: 'd4:6e:0e:03:00:58',
+                        internal: false,
+                        cidr: expectedAddress + '/24'
+                    }],
+                'Loopback Pseudo-Interface 1':
+                    [{
+                        address: '::1',
+                        netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+                        family: 'IPv6',
+                        mac: '00:00:00:00:00:00',
+                        scopeid: 0,
+                        internal: true,
+                        cidr: '::1/128'
+                    },
+                    {
+                        address: '127.0.0.1',
+                        netmask: '255.0.0.0',
+                        family: 'IPv4',
+                        mac: '00:00:00:00:00:00',
+                        internal: true,
+                        cidr: '127.0.0.1/8'
+                    }]
+            };
         });
 
         // act
@@ -48,76 +58,98 @@ describe('getIpAddress', () => {
         // arrange
         const expectedAddress = '192.168.6.244';
         os.networkInterfaces = jest.fn(() => {
-            return { 'vEthernet (nat)': 
-            [ { address: 'fe80::2c84:5c8a:d309:fcd8',  
-                netmask: 'ffff:ffff:ffff:ffff::',      
-                family: 'IPv6',
-                mac: '00:15:5d:99:54:01',
-                scopeid: 33,
-                internal: false,
-                cidr: 'fe80::2c84:5c8a:d309:fcd8/64' },
-              { address: '172.27.0.1',
-                netmask: '255.255.240.0',
-                family: 'IPv4',
-                mac: '00:15:5d:99:54:01',
-                internal: false,
-                cidr: '172.27.0.1/20' } ],
-           Ethernet:
-            [ { address: 'fe80::88d8:4c89:84a3:7b85',
-                netmask: 'ffff:ffff:ffff:ffff::',
-                family: 'IPv6',
-                mac: 'd8:9e:f3:38:8e:a5',
-                scopeid: 16,
-                internal: false,
-                cidr: 'fe80::88d8:4c89:84a3:7b85/64' },
-              { address: expectedAddress,
-                netmask: '255.255.255.0',
-                family: 'IPv4',
-                mac: 'd8:9e:f3:38:8e:a5',
-                internal: false,
-                cidr: expectedAddress + '/24' } ],
-           'VMware Network Adapter VMnet1':
-            [ { address: 'fe80::f5c3:2971:1e2c:b2c9',
-                netmask: 'ffff:ffff:ffff:ffff::',
-                family: 'IPv6',
-                mac: '00:50:56:c0:00:01',
-                scopeid: 18,
-                internal: false,
-                cidr: 'fe80::f5c3:2971:1e2c:b2c9/64' },
-              { address: '192.168.146.1',
-                netmask: '255.255.255.0',
-                family: 'IPv4',
-                mac: '00:50:56:c0:00:01',
-                internal: false,
-                cidr: '192.168.146.1/24' } ],
-           'VMware Network Adapter VMnet8':
-            [ { address: 'fe80::5142:c41c:6427:ae84',
-                netmask: 'ffff:ffff:ffff:ffff::',
-                family: 'IPv6',
-                mac: '00:50:56:c0:00:08',
-                scopeid: 31,
-                internal: false,
-                cidr: 'fe80::5142:c41c:6427:ae84/64' },
-              { address: '192.168.228.1',
-                netmask: '255.255.255.0',
-                family: 'IPv4',
-                mac: '00:50:56:c0:00:08',
-                internal: false,
-                cidr: '192.168.228.1/24' } ],
-           'Loopback Pseudo-Interface 1':
-            [ { address: '::1',
-                netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
-                family: 'IPv6',
-                mac: '00:00:00:00:00:00',
-                scopeid: 0,
-                internal: true,
-                cidr: '::1/128' },
-              { address: '127.0.0.1',
-                netmask: '255.0.0.0',
-                family: 'IPv4',
-                mac: '00:00:00:00:00:00',
-                internal: true,
-                cidr: '127.0.0.1/8' } ] };
+            return {
+                'vEthernet (nat)':
+                    [{
+                        address: 'fe80::2c84:5c8a:d309:fcd8',
+                        netmask: 'ffff:ffff:ffff:ffff::',
+                        family: 'IPv6',
+                        mac: '00:15:5d:99:54:01',
+                        scopeid: 33,
+                        internal: false,
+                        cidr: 'fe80::2c84:5c8a:d309:fcd8/64'
+                    },
+                    {
+                        address: '172.27.0.1',
+                        netmask: '255.255.240.0',
+                        family: 'IPv4',
+                        mac: '00:15:5d:99:54:01',
+                        internal: false,
+                        cidr: '172.27.0.1/20'
+                    }],
+                Ethernet:
+                    [{
+                        address: 'fe80::88d8:4c89:84a3:7b85',
+                        netmask: 'ffff:ffff:ffff:ffff::',
+                        family: 'IPv6',
+                        mac: 'd8:9e:f3:38:8e:a5',
+                        scopeid: 16,
+                        internal: false,
+                        cidr: 'fe80::88d8:4c89:84a3:7b85/64'
+                    },
+                    {
+                        address: expectedAddress,
+                        netmask: '255.255.255.0',
+                        family: 'IPv4',
+                        mac: 'd8:9e:f3:38:8e:a5',
+                        internal: false,
+                        cidr: expectedAddress + '/24'
+                    }],
+                'VMware Network Adapter VMnet1':
+                    [{
+                        address: 'fe80::f5c3:2971:1e2c:b2c9',
+                        netmask: 'ffff:ffff:ffff:ffff::',
+                        family: 'IPv6',
+                        mac: '00:50:56:c0:00:01',
+                        scopeid: 18,
+                        internal: false,
+                        cidr: 'fe80::f5c3:2971:1e2c:b2c9/64'
+                    },
+                    {
+                        address: '192.168.146.1',
+                        netmask: '255.255.255.0',
+                        family: 'IPv4',
+                        mac: '00:50:56:c0:00:01',
+                        internal: false,
+                        cidr: '192.168.146.1/24'
+                    }],
+                'VMware Network Adapter VMnet8':
+                    [{
+                        address: 'fe80::5142:c41c:6427:ae84',
+                        netmask: 'ffff:ffff:ffff:ffff::',
+                        family: 'IPv6',
+                        mac: '00:50:56:c0:00:08',
+                        scopeid: 31,
+                        internal: false,
+                        cidr: 'fe80::5142:c41c:6427:ae84/64'
+                    },
+                    {
+                        address: '192.168.228.1',
+                        netmask: '255.255.255.0',
+                        family: 'IPv4',
+                        mac: '00:50:56:c0:00:08',
+                        internal: false,
+                        cidr: '192.168.228.1/24'
+                    }],
+                'Loopback Pseudo-Interface 1':
+                    [{
+                        address: '::1',
+                        netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+                        family: 'IPv6',
+                        mac: '00:00:00:00:00:00',
+                        scopeid: 0,
+                        internal: true,
+                        cidr: '::1/128'
+                    },
+                    {
+                        address: '127.0.0.1',
+                        netmask: '255.0.0.0',
+                        family: 'IPv4',
+                        mac: '00:00:00:00:00:00',
+                        internal: true,
+                        cidr: '127.0.0.1/8'
+                    }]
+            };
         });
 
         // act
@@ -147,26 +179,39 @@ describe('isFromLocalhost', () => {
 })
 
 describe('getIpAddressFromReq', () => {
-  each([['::ffff:192.168.1.169'], ['::1'], ['::ffff:127.0.0.1']])
-  .it('should return ip address from request.headers[\'x-forwarded-for\'] if it is %s', (xForwarder) => {
-    // arrange
-    const req = {};
-    req.headers = { 'x-forwarded-for': xForwarder };
-    const expectedResult = xForwarder;
+    each([['::ffff:192.168.1.169'], ['::1'], ['::ffff:127.0.0.1']])
+        .it('should return ip address from request.headers[\'x-forwarded-for\'] if it is %s', (xForwarder) => {
+            // arrange
+            const req = {};
+            req.headers = {
+                host: '127.0.0.1:57933',
+                'accept-encoding': 'gzip, deflate',
+                'user-agent': 'node-superagent/3.8.3',
+                'x-forwarded-for': xForwarder,
+                connection: 'close'
+            };
+            const expectedResult = xForwarder;
 
-    // act
-    const actualResult = getIpAddressFromReq(req);
+            // act
+            const actualResult = getIpAddressFromReq(req);
 
-    // assert
-    expect(actualResult).toBe(expectedResult);
-  })
+            // assert
+            expect(actualResult).toBe(expectedResult);
+        })
 
-  it('should return ip address from request.connection.remoteAddress if no x-forwarded-for field from headers', () => {
-    // arrange
+    each([['::ffff:192.168.1.169'], ['::1'], ['::ffff:127.0.0.1']])
+        .it('should return ip address from request.connection.remoteAddress if no x-forwarded-for field from headers if it is %s', (remoteAddress) => {
+            // arrange
+            const req = {};
+            req.headers = {};
+            req.connection = {};
+            req.connection.remoteAddress = remoteAddress;
+            const expectedResult = remoteAddress;
 
-    // act
+            // act
+            const actualResult = getIpAddressFromReq(req);
 
-    // assert
-    expect('not implemented, yet').toBe('implemented');
-  })
+            // assert
+            expect(actualResult).toBe(expectedResult);
+        })
 })

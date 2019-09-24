@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const clientController = require('../controllers/client');
+const render = require('../controllers/render');
+const db_Clients = require('../models/db_Clients');
+const networkHelper = require('../helpers/networkHelper');
 
 /**
  * @api {get} / 1. go to dashboard page
@@ -13,6 +15,15 @@ const clientController = require('../controllers/client');
  * It will return Admin dashboard when client is an Admin
  * @apiSuccess (Success) {Number} status 200
  */
-router.get('/', (req, res) => clientController.gotoDashboard(req, res));
+router.get('/', (req, res) => {
+    const ipAddr = networkHelper.getIpAddressFromReq(req);
+    const client = db_Clients.getOrNewClientIfNotExisted(ipAddr);
+
+    if (client.isAdmin) {
+        render.renderAdminDashboard(req, res);
+    } else {
+        res.redirect('apidoc/index.html');
+    }
+});
 
 module.exports = router;

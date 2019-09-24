@@ -2,22 +2,26 @@
 const Client = require('./client');
 let clients = [];
 
-module.exports.getClient = function (ipAddr) {
-    const client = new Client(ipAddr);
+module.exports.getOrNewClientIfNotExisted = function(ipAddr) {
+    var client = this.getClient(ipAddr);
 
-    if (!clients[client.id]) {
-        clients[client.id] = client;
+    if (!client) {
+        client = this.newClient(ipAddr);
     }
+
+    return client;
+}
+
+module.exports.getClient = function (ipAddr) {
+    var client = new Client(ipAddr);
 
     return clients[client.id];
 }
 
-module.exports.setClient = function (client) {
-    const client = new Client(ipAddr);
+module.exports.newClient = function (ipAddr) {
+    var client = new Client(ipAddr);
 
-    if (!clients[client.id]) {
-        clients[client.id] = client;
-    }
+    clients[client.id] = client;
 
     return clients[client.id];
 }

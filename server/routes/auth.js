@@ -25,7 +25,7 @@ const pinHelper = require('../helpers/pinHelper');
 
 router.post('/connect', (req, res) => {
     const ipAddr = networkHelper.getIpAddressFromReq(req);
-    const client = db_Clients.getClient(ipAddr);
+    const client = db_Clients.getOrNewClientIfNotExisted(ipAddr);
     const status = client.getStatus();
 
     if (status === 'disconnected' || status === 'expired') {

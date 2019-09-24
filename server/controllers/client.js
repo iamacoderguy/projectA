@@ -4,7 +4,7 @@ const networkHelper = require('../helpers/networkHelper');
 
 module.exports.gotoDashboard = function (req, res) {
     const ipAddr = networkHelper.getIpAddressFromReq(req);
-    const client = db_Clients.getClient(ipAddr);
+    const client = db_Clients.getOrNewClientIfNotExisted(ipAddr);
 
     if (client.isAdmin) {
         render.renderAdminDashboard(req, res);
