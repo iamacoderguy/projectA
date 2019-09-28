@@ -1,10 +1,14 @@
+const render = require('../controllers/render');
 const db_Clients = require('../models/db_Clients');
 const networkHelper = require('../helpers/networkHelper');
 
-module.exports = function (req, res, next) {
+module.exports.gotoDashboard = function (req, res) {
     const ipAddr = networkHelper.getIpAddressFromReq(req);
     const client = db_Clients.getOrNewClientIfNotExisted(ipAddr);
 
-    if (!client.isAdmin) return res.status(403).send('Access denied.');
-    else next();
+    if (client.isAdmin) {
+        render.renderAdminDashboard(req, res);
+    } else {
+        res.redirect('apidoc/index.html');
+    }
 }
