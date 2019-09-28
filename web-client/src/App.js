@@ -1,6 +1,7 @@
-import React, { Component } from "react";
-import "./App.css";
-import DashboardView from "./components/DashboardView/DashboardView";
+import React, { Component } from 'react';
+import './App.css';
+// import DashboardView from "./components/DashboardView/DashboardView";
+import Dashboard from './components/Daskboard';
 
 class App extends Component {
   render() {
@@ -9,7 +10,8 @@ class App extends Component {
         <div className="App-header">
           <h2>Client-A Dashboard</h2>
         </div>
-        <DashboardView />
+        {/* <DashboardView /> */}
+        <Dashboard />
       </main>
     );
   }
