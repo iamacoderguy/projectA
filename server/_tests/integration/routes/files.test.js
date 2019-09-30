@@ -291,66 +291,75 @@ describe(endpoint, () => {
             jest.resetModules();
         });
 
-        describe('PUT /path', () => {
-            function putPath(path, ipAddr) {
-                return request(app)
-                    .put(endpoint + '/path')
-                    .set('x-forwarded-for', !ipAddr ? localhostIpAddr : ipAddr)
-                    .send({ path: path });
-            }
+        each([['PUT /path'], ['POST /path?_method=PUT']])
+            .describe('%s', (method) => {
+                function putPath(path, ipAddr) {
+                    if (method === 'PUT /path') {
+                        return request(app)
+                            .put(endpoint + '/path')
+                            .set('x-forwarded-for', !ipAddr ? localhostIpAddr : ipAddr)
+                            .send({ path: path });
+                    }
+                    else {
+                        return request(app)
+                            .post(endpoint + '/path?_method=PUT')
+                            .set('x-forwarded-for', !ipAddr ? localhostIpAddr : ipAddr)
+                            .send({ path: path });
+                    }
+                }
 
-            it('should return 403 if the client is not an admin', async () => {
-                // act
-                const res = await putPath(validSharedPath, clientIpAddr);
+                it('should return 403 if the client is not an admin', async () => {
+                    // act
+                    const res = await putPath(validSharedPath, clientIpAddr);
 
-                // assert
-                expect(res.status).toBe(403);
-            })
+                    // assert
+                    expect(res.status).toBe(403);
+                })
 
-            it('should return 200 if input is valid', async () => {
-                // act
-                const res = await putPath(validSharedPath);
+                it('should return 200 if input is valid', async () => {
+                    // act
+                    const res = await putPath(validSharedPath);
 
-                // assert
-                expect(res.status).toBe(200);
-            })
+                    // assert
+                    expect(res.status).toBe(200);
+                })
 
-            it('should return the list of new shared files if input is valid', async () => {
-                // arrange
-                const expectedFiles = sharedFiles;
+                it('should return the list of new shared files if input is valid', async () => {
+                    // arrange
+                    const expectedFiles = sharedFiles;
 
-                // act
-                const res = await putPath(validSharedPath);
+                    // act
+                    const res = await putPath(validSharedPath);
 
-                // assert
-                expect(res.body.length).toBe(expectedFiles.length);
-                expectedFiles.forEach(expectedFile => {
-                    expect(res.body.some(f => f === expectedFile)).toBeTruthy();
+                    // assert
+                    expect(res.body.length).toBe(expectedFiles.length);
+                    expectedFiles.forEach(expectedFile => {
+                        expect(res.body.some(f => f === expectedFile)).toBeTruthy();
+                    })
+                })
+
+                it('should update the sharedPath if input is valid', async () => {
+                    // arrange
+                    setSharedPath('another-path');
+
+                    // act
+                    await putPath(validSharedPath);
+
+                    // assert
+                    const actualPath = getSharedPath();
+                    expect(actualPath).toBe(validSharedPath);
+                })
+
+                it('should return 404 if input is invalid', async () => {
+                    // arrange
+                    setSharedPath(validSharedPath);
+
+                    // act
+                    const res = await putPath('invalid-path');;
+
+                    // assert
+                    expect(res.status).toBe(404);
                 })
             })
-
-            it('should update the sharedPath if input is valid', async () => {
-                // arrange
-                setSharedPath('another-path');
-
-                // act
-                await putPath(validSharedPath);
-
-                // assert
-                const actualPath = getSharedPath();
-                expect(actualPath).toBe(validSharedPath);
-            })
-
-            it('should return 404 if input is invalid', async () => {
-                // arrange
-                setSharedPath(validSharedPath);
-
-                // act
-                const res = await putPath('invalid-path');;
-
-                // assert
-                expect(res.status).toBe(404);
-            })
-        })
     })
 })
